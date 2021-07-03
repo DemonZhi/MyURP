@@ -1,0 +1,191 @@
+Using pre-set license
+Built from '2020.3/china_unity/release' branch; Version is '2020.3.8f1c1 (0b92326fa640) revision 758322'; Using compiler version '192528614'; Build Type 'Release'
+OS: 'Windows 10 Home China; OS build 18363.1556; Version 1909; 64bit' Language: 'zh' Physical Memory: 16232 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+
+ COMMAND LINE ARGUMENTS:
+D:\Tool\UnityEditors\2020.3.8f1c1\Editor\Unity.exe
+-adb2
+-batchMode
+-noUpm
+-name
+AssetImportWorker0
+-projectPath
+D:/Project/MyURP
+-logFile
+Logs/AssetImportWorker0.log
+-srvPort
+55934
+Successfully changed project path to: D:/Project/MyURP
+D:/Project/MyURP
+Using Asset Import Pipeline V2.
+Refreshing native plugins compatible for Editor in 48.62 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 2020.3.8f1c1 (0b92326fa640)
+[Subsystems] Discovering subsystems at path D:/Tool/UnityEditors/2020.3.8f1c1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/Project/MyURP/Assets
+GfxDevice: creating device client; threaded=0
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: Intel(R) UHD Graphics (ID=0x9b41)
+    Vendor:   
+    VRAM:     8116 MB
+    Driver:   26.20.100.7262
+Shader 'Universal Render Pipeline/Particles/Lit': fallback shader 'Universal Render Pipeline/Particles/SimpleLit' not found
+Initialize mono
+Mono path[0] = 'D:/Tool/UnityEditors/2020.3.8f1c1/Editor/Data/Managed'
+Mono path[1] = 'D:/Tool/UnityEditors/2020.3.8f1c1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit'
+Mono config path = 'D:/Tool/UnityEditors/2020.3.8f1c1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56016
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: D:/Tool/UnityEditors/2020.3.8f1c1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.001233 seconds.
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 49.45 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Mono: successfully reloaded assembly
+- Completed reload, in  2.434 seconds
+Platform modules already initialized, skipping
+Registering precompiled user dll's ...
+Registered in 0.001546 seconds.
+Begin MonoManager ReloadAssembly
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 51.10 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Mono: successfully reloaded assembly
+- Completed reload, in  1.126 seconds
+Platform modules already initialized, skipping
+========================================================================
+Worker process is ready to serve import requests
+Shader 'Universal Render Pipeline/Particles/Lit': fallback shader 'Universal Render Pipeline/Particles/SimpleLit' not found
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.07 seconds
+Refreshing native plugins compatible for Editor in 0.44 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 2544 Unused Serialized files (Serialized files now loaded: 0)
+System memory in use before: 127.9 MB.
+System memory in use after: 128.1 MB.
+
+Unloading 10 unused Assets to reduce memory usage. Loaded Objects now: 2987.
+Total: 2.172500 ms (FindLiveObjects: 0.216700 ms CreateObjectMapping: 0.096800 ms MarkObjects: 1.758400 ms  DeleteObjects: 0.099900 ms)
+
+========================================================================
+Received Import Request.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators
+  artifactKey: Guid(21a375b704549664589881dfc892e7e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators using Guid(21a375b704549664589881dfc892e7e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'e749b85e51f09ede08401369ffb35ec0') in 0.004723 seconds
+  Import took 0.009012 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000272 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes
+  artifactKey: Guid(f5422948b83b1d34c86e710f0d9fea30) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes using Guid(f5422948b83b1d34c86e710f0d9fea30) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '613b3569f94c03229ce03e3d9d8d05d1') in 0.002273 seconds
+  Import took 0.069092 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 86.716479 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes/PostProcessEditorAttribute.cs
+  artifactKey: Guid(70ea2ab329ffbac43a0a02daa61dbe6b) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes/PostProcessEditorAttribute.cs using Guid(70ea2ab329ffbac43a0a02daa61dbe6b) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'c27985ee301a41ea18e0e37b48cea682') in 0.049840 seconds
+  Import took 0.053721 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.394364 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes/DecoratorAttribute.cs
+  artifactKey: Guid(9753335d6f48da542be1c720aa07bbf5) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Attributes/DecoratorAttribute.cs using Guid(9753335d6f48da542be1c720aa07bbf5) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '8480a57d234eba3213f289f8ba7eca1a') in 0.003341 seconds
+  Import took 0.020682 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.515868 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/AttributeDecorator.cs
+  artifactKey: Guid(6b2666165a17bbd4e851c1382898651e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/AttributeDecorator.cs using Guid(6b2666165a17bbd4e851c1382898651e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '5069ca929a37c3664a43551cb2faff1d') in 0.004142 seconds
+  Import took 0.046825 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.618924 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/Decorators.cs
+  artifactKey: Guid(d6ae47710b8593e41960a944bb29e6c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/Decorators.cs using Guid(d6ae47710b8593e41960a944bb29e6c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '4c94ce5a7b0e361f15119e6180e9102b') in 0.002133 seconds
+  Import took 0.007201 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.295959 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/TrackballDecorator.cs
+  artifactKey: Guid(26ed99f46b86df8449003e6ec0f65144) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Editor/Decorators/TrackballDecorator.cs using Guid(26ed99f46b86df8449003e6ec0f65144) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '491e11e1f7e2da395f1480414811f201') in 0.002417 seconds
+  Import took 0.008660 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 102.817947 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime
+  artifactKey: Guid(1bdda73de20b6a54592f998f94de3b64) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime using Guid(1bdda73de20b6a54592f998f94de3b64) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'c26848c10ec88188381d209864f540cf') in 0.006860 seconds
+  Import took 0.012835 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.487850 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/ParameterOverride.cs
+  artifactKey: Guid(bc5d8aaf03e613843a0ecaff18e0dfbd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/ParameterOverride.cs using Guid(bc5d8aaf03e613843a0ecaff18e0dfbd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'e9c6f5f7d9f0fd25b2968573a7af8e43') in 0.002627 seconds
+  Import took 0.006683 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.002926 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/ParameterOverride.cs
+  artifactKey: Guid(bc5d8aaf03e613843a0ecaff18e0dfbd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/ParameterOverride.cs using Guid(bc5d8aaf03e613843a0ecaff18e0dfbd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'e9c6f5f7d9f0fd25b2968573a7af8e43') in 0.004883 seconds
+  Import took 0.009579 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.847290 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessBundle.cs
+  artifactKey: Guid(79092fbfc2fc7394aa0754682e3089f7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessBundle.cs using Guid(79092fbfc2fc7394aa0754682e3089f7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '97f8b23e7f49a632a53b7757d028a5d8') in 0.003880 seconds
+  Import took 0.010021 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.827152 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessDebugLayer.cs
+  artifactKey: Guid(314a03e1d67d9fb4b85926a765017e02) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessDebugLayer.cs using Guid(314a03e1d67d9fb4b85926a765017e02) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '122c65d4a4f76cfd88ad7c489f6bdb51') in 0.002742 seconds
+  Import took 0.008790 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.319383 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessEffectRenderer.cs
+  artifactKey: Guid(5cfe6169b379ff84eb9796502a1a144d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessEffectRenderer.cs using Guid(5cfe6169b379ff84eb9796502a1a144d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'f54872076b4ccc498e5fdd639cf62f61') in 0.002627 seconds
+  Import took 0.016183 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.824440 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessEffectSettings.cs
+  artifactKey: Guid(2df5c9d441da8704c8eab449a2f79d85) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessEffectSettings.cs using Guid(2df5c9d441da8704c8eab449a2f79d85) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '710f8c7c79c1e41f6a8decd0018e22d1') in 0.003127 seconds
+  Import took 0.028050 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.162209 seconds.
+  path: Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessManager.cs
+  artifactKey: Guid(18ff20fea2d39cf428e31d3e75b4ae79) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Packages/com.unity.postprocessing/PostProcessing/Runtime/PostProcessManager.cs using Guid(18ff20fea2d39cf428e31d3e75b4ae79) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '56187deaeb5dd84d3ddacc1b642610c7') in 0.002682 seconds
+  Import took 0.008993 seconds .
+
+AssetImportWorkerClient::OnTransportError - code=2 error=End of file
