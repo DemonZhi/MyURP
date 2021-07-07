@@ -59,3 +59,9 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+MyURP/Temp/UnityLockfile
+*.log
+*.log
+MyURP/Logs/shadercompiler-UnityShaderCompiler.exe0.log
+MyURP/Logs/shadercompiler-UnityShaderCompiler.exe1.log
+MyURP/Logs/shadercompiler-UnityShaderCompiler.exe2.log
