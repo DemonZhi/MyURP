@@ -38,7 +38,7 @@
 
     real3 ApplyBrightness(real3 color)
     {
-        return Color * _GlobalBrightness;
+        return color * _GlobalBrightness;
     }
 
     real linstep(real min, real max, real v)
@@ -48,7 +48,7 @@
 
     real ApplyMicroShadow(real ao, real3 N , real3 L, real shadow)
     {
-#if define(_MICRO_SHADOW)
+#if defined(_MICRO_SHADOW)
         real aperture = 2.0 * ao * ao ;
         real microShadow = saturate( abs( dot(N,L) ) + aperture - 1.0  );
         return shadow * microShadow;

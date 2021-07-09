@@ -4,13 +4,13 @@
 #include "./MyEngine_Common.hlsl"
 
 // Wind
-TEXTURE2D(_WindTexture); SAMPLER(sample_WindTexture);
+TEXTURE2D(_WindTexture); SAMPLER(sampler_WindTexture);
 
 half4 _WindDirectionSize;
 half4 _WindStrengthMultipliers;
 half4 _WindSinTime;
 
-TEXTURE2D(_GrassDisplacementRT); SMAPLE(sampler_GrassDisplacementRT);
+TEXTURE2D(_GrassDisplacementRT); SAMPLER(sampler_GrassDisplacementRT);
 
 float4 _GrassDisplacementPosition;
 
@@ -61,7 +61,7 @@ void AnimateFoliageVertex(half4 animParams, half sampleSize, half4 windMultiplie
         half sinValue = waveAttenuation * sin(sinx);
 
         // wave offset
-        half waveOffset = noiseVal * sinValue * waveDirection + (windDir * waveAttenuation * windScale);
+        half3 waveOffset = noiseVal * sinValue * waveDirection + (windDir * waveAttenuation * windScale);
 
         waveOffset.y += lengthOffset * waveAttenuation;
 

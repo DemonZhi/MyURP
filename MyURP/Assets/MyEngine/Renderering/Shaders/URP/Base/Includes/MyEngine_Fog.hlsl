@@ -13,7 +13,7 @@ half _FogHeight;
 half _FogHeightFalloff;
 half _FogDensity;
 half _FogAmbient;
-half _FogColorFade;
+half4 _FogColorFade;
 half _FogHeightStartDistance;
 half _FogHeightMinOpacity;
 

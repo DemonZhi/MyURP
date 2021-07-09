@@ -65,3 +65,6 @@ MyURP/Temp/UnityLockfile
 MyURP/Logs/shadercompiler-UnityShaderCompiler.exe0.log
 MyURP/Logs/shadercompiler-UnityShaderCompiler.exe1.log
 MyURP/Logs/shadercompiler-UnityShaderCompiler.exe2.log
+*.bakert
+MyURP/Temp/
+MyURP/Library/
