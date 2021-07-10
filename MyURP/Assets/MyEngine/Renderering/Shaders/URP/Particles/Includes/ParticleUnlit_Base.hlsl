@@ -124,7 +124,6 @@ CBUFFER_START(UnityPerMaterial)
     half    _FlagWaveSpeed;
     half    _FlagWaveFrequencyScale;
     half4   _FlagWaveScale;
-    half    _FlagWaveNoiseScale;
     half    _FlagWaveLengthOffset;
     half4   _FlagWaveWindScale;
 
@@ -132,7 +131,7 @@ CBUFFER_END
 
 TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
 
-#if defined(_VERTTEXOFFSET_ON) && defined(PARTICLE_WAVE)
+#if defined(_VERTTEXOFFSET_ON) || defined(PARTICLE_WAVE)
     TEXTURE2D(_VertexOffsetTex);        SAMPLER(sampler_VertexOffsetTex);
 #endif
 
@@ -300,7 +299,7 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
     {
         Varyings output = (Varyings)0;
 #if defined(_VERTEXOFFSET_ON) || defined(PARTICLE_WAVE)
-        float2 vertexOffsetUV = float2( input.uv.x + (_VertexOffsetTexU * _Time.y), input.uv.y + (_VertexOffsetTexY * _Time.y));
+        float2 vertexOffsetUV = float2( input.uv.x + (_VertexOffsetTexU * _Time.y), input.uv.y + (_VertexOffsetTexV * _Time.y));
 #endif
 
 #if defined(_VERTEXOFFSET_ON)    
@@ -309,11 +308,11 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         input.position.xyz += (_VertexOffsetIndensity * vertexOffsetColor).rgb;
 #endif
 
-#if defined(PARTICLE_WAVE)
-        float2 vertexOffsetUV = float2(input.uv.x + (_VertexOffsetTexU * _Time.y), input.uv.y + (_VertexOffsetTexV * _Time.y));
-        half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexoffsetTex, sampler_VertexOffsetTex, vertexOffsetUV, 0).r;
+#if defined(PARTICLE_WAVE)     
+        half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetTex, sampler_VertexOffsetTex, vertexOffsetUV, 0).r;
         vertexOffsetTexColor = _VertexOffsetIndensity * (2 * vertexOffsetTexColor - 1) * vertexOffsetTexColor;
-        AnimateFlagVertex( _FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale,_FlagWaveScale.xyz,vertexOffsetTexColor,input.color.b, input.uv,0.5, _FlagWaveWindScale,xyz, input.positionOS.xyz);
+        AnimateFlagVertex( _FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale,_FlagWaveScale.xyz,
+        vertexOffsetTexColor,input.color.b, input.uv, 0.5, _FlagWaveWindScale.xyz, input.positionOS.xyz);
 #endif
 
         float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
@@ -400,7 +399,7 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 #if defined(DECAL)
         float4 positionVS = mul(UNITY_MATRIX_MV, input.positionOS); //转相机空间
         float3 viewRayVS = positionVS.xyz;                          
-        output.viewRayOS.w = output.viewRayVS.z;                    //记录相机空间深度
+        output.viewRayOS.w = positionVS.z;                    //记录相机空间深度
         float4x4 ViewToObjectMatrix = mul( GetWorldToObjectMatrix(), UNITY_MATRIX_I_V );
         output.viewRayOS.xyz = mul((float3x3)ViewToObjectMatrix, -viewRayVS).xyz;
         output.camPosOS = ViewToObjectMatrix._m03_m13_m23;
@@ -419,7 +418,7 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         #if defined(DECAL)
             input.viewRayOS.xyz *= rcp(input.viewRayOS.w);
             float2 uv = input.screenUV.xy / input.screenUV.w;
-            float rawDepth = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, sample_CameraDepthTexture, uv, 0);
+            float rawDepth = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, uv, 0);
             float depth = LinearEyeDepth(rawDepth, _ZBufferParams);
             float3 positionOS = input.camPosOS + input.viewRayOS.xyz * depth;
             clip(float3(0.5, 0.5, 0.5) - abs(positionOS.xyz));
@@ -525,8 +524,9 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
             float atan2UV = 1 - abs(atan2(centerUV.y, centerUV.x) / 3.14);
             half sector  = lerp(1.0, 1.0 - ceil(atan2UV - _WarningAngle * 0.002777778), _WarningSector);
             half sectorBig =lerp(1.0, 1.0 - ceil(atan2UV - (_WarningAngle + _WarningOutline) * 0.002777778), _WarningSector);
-            
-            half needOutline = 1 - step(359, _Angle);
+            half outline = ( sectorBig - sector ) * mainTexColor.g * _WarningOutlineAlpha;
+
+            half needOutline = 1 - step(359, _WarningAngle);
             outline *= needOutline;
             col = mainTexColor.r * input.color * sector + outline * input.color;
 
@@ -607,4 +607,56 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         return col;
     }
 
+
+    Varyings vertexFrames(Attributes input)
+    {
+        Varyings  output = (Varyings)  0;
+        float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+        float4 positionCS = TransformWorldToHClip(positionWS);
+
+#if UNITY_REVERSED_Z
+        float ZHClipOffset = positionCS.z + _ProjectionPositionOffsetZ / positionCS.w;
+        positionCS.z = ZHClipOffset;
+#else
+        float ZHClipOffset = positionCS.z - _ProjectionPositionOffsetZ / positionCS.w;
+        positionCS.z = ZHClipOffset;
+#endif
+
+        output.positionCS = positionCS;
+        output.color = input.color;
+
+        float time = floor(_Time.y * _Speed);
+        float row = floor(time / _ColNum);
+        float colum = time - row * _ColNum;
+
+        half2 uv = float2(input.uv.x / _ColNum, input.uv.y / _RowNum);
+
+        uv.x += colum / _ColNum;
+        uv.y += row / _RowNum;
+
+        output.uv = TRANSFORM_TEX(uv, _MainTex);
+
+        #if defined(UIMODE_ON)
+            output.worldPos = positionWS.xy;
+        #endif
+
+        
+#if defined(_SOFTPARTICLES_ON)
+        float4 ndc = output.positionCS * 0.5f;
+        float4 positionNDC = 0;
+        positionNDC.xy = float2(ndc.x , ndc.y * _ProjectionParams.x) + ndc.w;
+        positionNDC.zw = output.positionCS.zw;
+        output.projectedPosition = positionNDC;
+#endif
+
+#if defined(_EFFECTFOG_ON)
+        output.fogAtten = ComputeFogAtten(positionWS) * _Fog;
+#endif
+        return output;
+    }
+
+    half4 fragFrames (Varyings input) : SV_Target 
+    {
+                
+    }
 #endif

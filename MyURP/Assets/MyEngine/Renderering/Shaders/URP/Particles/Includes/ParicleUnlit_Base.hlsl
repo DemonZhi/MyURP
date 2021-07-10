@@ -30,7 +30,7 @@ CBUFFER_START(UnityPerMaterial)
 // VERTEXOFFSET
     half _VertexOffsetTexU;
     half _VertexOffsetTexV;
-    half4 _VertexOffsetIndensity;
+    half4 _VertexOffsetIntensity;
 
 // ALPHATEST_ON
     half _AlphaClip;
@@ -299,7 +299,7 @@ Varyings vert(Attributes input)
 #if defined(_VERTEXOFFSET_ON)    
     float4 vertexOffsetColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetTex, sampler_VertexOffsetTex, vertexOffsetUV);
     vertexOffsetColor = (vertexOffsetColor - 0.5) * 2;
-    input.position.xyz += (_VertexOffsetIndensity * vertexOffsetColor).rgb;
+    input.position.xyz += (_VertexOffsetIntensity * vertexOffsetColor).rgb;
 #endif
 
 #if defined(PARTICLE_WAVE)

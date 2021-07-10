@@ -1,0 +1,95 @@
+Shader "MyEngine/URP/Particles/ParticleWarningSectorDecalUnlit"
+{
+    Properties
+    {
+        _MainTex ("Texture", 2D) = "white" {}
+        _MainTexOffsetX("_MainTexOffsetX", Float) = 0.0
+        _MainTexOffsetY("_MainTexOffsetY", Float) = 0.0
+
+        _Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
+        _ColorFactor("Color Factor", Float) = 1.0
+        _Poser("Poser", Range(1.0, 20.0)) = 1.0
+        _Gray("Gray", Range(0.0, 2.0)) = 0.0
+        _BlackAlpha("BlackAlpha", Range(0.0, 1.0)) = 0.0
+        _Alpha("Alpha", Range(0.0,100.0)) = 1.0
+
+        [Header(Sector)]
+        [MaterialToggle] _WarningSector("Sector", Float) = 1
+        _WarningAngle("Angle",Range(0, 360)) = 60
+        _WarningOutline("_Outline", Range(0.0, 5.0)) = 0.35
+        _WarningOutlineAlpha("_WarningOutlineAlpha", Range(0.0, 5.0)) = 0.35
+        [MaterialToggle(_INDICATOR_ON)] _WarningIndicator("_WarningIndicator", Float) = 1
+
+        [Header(Flow)]
+        _FlowColor("Flow Color", Color) = (1.0, 1.0, 1.0, 1.0)
+        _FlowFade("Fade", Range(0.0, 1.0)) = 1.0
+        _Duration("Duration", Range(0.0, 1.0)) = 0.0
+
+        [Toggle(_ALPHATEST_ON)]
+        _AlphaClip("AlphaClip", Float) = 0.0
+        _Cutoff("Cut Off", Range(0.0, 1.0)) = 0.5
+
+        [keywordEnum(Alpha,Additive)]
+        _Mode("mode", Float) = 1.0
+        _SrcBlend("SrcBlend", Float) = 1.0
+        _DstBlend("DstBlend",Float) = 0.0
+        _ZWrite("ZWrite",Float) = 0.0        
+
+        [keywordEnum(Off,Front,Back)]
+        _Cull("Cull", Float) = 2.0
+        
+        _QueueOffset(" _QueueOffset", Float) = 0.0
+        _ProjectionPositionOffsetZ("ProjectionPositionOffsetZ", Float) = 0.0
+
+        _StencilComp("Stencil", Float) = 8.0
+        
+    }
+    SubShader
+    {
+        Tags 
+        { 
+            "Queue" = "Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "RenderPipeline" = "UniversalPipeline"
+            "DisableBatching" = "True"
+        }
+
+        Blend [_SrcBlend][_DstBlend]
+        Cull [_Cull]
+        ZWrite [_ZWrite]
+        ZTest Always
+
+        Stencil
+        {
+            Ref 255
+            Comp notequal
+        }
+
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "UniversalForward"
+            }
+
+            HLSLPROGRAM
+
+            #define DECAL 1
+            #define WARNINGSECTOR 1
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile _ _INDICATOR_ON
+
+            #include "./Includes/ParticleUnlit_Base.hlsl"
+
+            ENDHLSL
+           
+        }
+    }
+    
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
+    CustomEditor "ParticleShaderGUI"
+}

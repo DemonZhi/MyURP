@@ -4,7 +4,7 @@ Shader "MyEngine/URP/Particles/ParticleUnlit"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _MainTexOffsetX("_MainTexOffsetX", Float) = 0.0
-        _MainTexOffsetY("_MainTexOffsetX", Float) = 0.0
+        _MainTexOffsetY("_MainTexOffsetY", Float) = 0.0
 
         _Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
         _ColorFactor("Color Factor", Float) = 1.0
@@ -38,6 +38,7 @@ Shader "MyEngine/URP/Particles/ParticleUnlit"
 
         [Toggle(_ALPHATEST_ON)]
         _AlphaClip("AlphaClip", Float) = 0.0
+        _Cutoff("Cut Off", Range(0.0, 1.0)) = 0.5
 
         [keywordEnum(Alpha,Additive)]
         _Mode("mode", Float) = 1.0
@@ -102,6 +103,6 @@ Shader "MyEngine/URP/Particles/ParticleUnlit"
         }
     }
     
-       // Fallback "Hidden/Universal Render Pipeline/FallbackError"
-        //CustomEditor "ParticleShaderGUI"
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
+    CustomEditor "ParticleShaderGUI"
 }

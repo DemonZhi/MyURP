@@ -21,8 +21,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: New Material
-  m_Shader: {fileID: 4800000, guid: fdc2d9318deaf18489549397ad149dd7, type: 3}
-  m_ShaderKeywords: 
+  m_Shader: {fileID: 4800000, guid: ad1979b801f6589448fb1af8d0cb9fd5, type: 3}
+  m_ShaderKeywords: _INDICATOR_ON _WARNINGSECTOR_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -104,7 +104,9 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 2
+    - _Duration: 0
     - _EnvironmentReflections: 1
+    - _FlowFade: 1
     - _Fog: 0
     - _FogEnable: 0
     - _GlossMapScale: 0
@@ -134,12 +136,18 @@ Material:
     - _UVRadialEnabled: 0
     - _UVRotate: 0
     - _UVRotateEnabled: 0
+    - _WarningAngle: 60
+    - _WarningIndicator: 1
+    - _WarningOutline: 0.35
+    - _WarningOutlineAlpha: 0.35
+    - _WarningSector: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _ClipRect: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.26783556, g: 0.38679248, b: 0.32234254, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FlowColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
