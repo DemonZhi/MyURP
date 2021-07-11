@@ -55,8 +55,23 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _Fog("Fog", Range(0.0, 1.0 )) = 0.0
 
         [Toggle(_AMBIENTLIGHT_ON)]
-        _Ambienting("Ambient Lighting", Float) = 0.0
+        _AmbientingEnable("Ambient Lighting", Float) = 0.0
         _AmbientingIntensity("Ambient Lighting Intensity", Range(0, 10)) = 0.0
+
+
+        _RimLightingEnable("_RimLightingEnable", Float) = 0.0
+         [keywordEnum(Outsode,Inside)]
+        _RimLightMode("_RimLightMode", Float) = 0.0
+        _RimOuterColor("_RimOuterColor", Color) = (1.0, 1.0, 1.0, 1.0)
+        _RimOuterColorFactor("_RimOuterColorFactor", Range(1.0, 20.0)) = 1
+        _RimInnerColor("_RimInnerColor", Color) =(1.0, 1.0, 1.0, 1.0)
+        _RimInnerColorFactor("_RimInnerColorFactor", Range(1.0, 20.0)) = 1
+        _RimOuterTickness("_RimOuterTickness", Range(0.0, 1.0)) = 0.0
+        _RimRadius("_RimRadius", Range(-1.0, 1.0)) = 0.0
+        _RimIntensity("_RimIntensity", Range(0.0, 1.0)) = 0.0
+        _RimAlpha("_RimAlpha", Range(0.0, 1.0)) = 1.0
+
+
 
         [Toggle(_SOFTPARTICLES_ON)]
         _SoftParticlesEnable("_SoftParticlesEnable",Float) = 0.0
@@ -78,7 +93,7 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _Cutoff("Cut Off", Range(0.0, 1.0)) = 0.5
 
         [keywordEnum(Alpha,Additive)]
-        _Mode("mode", Float) = 1.0
+        _AlphaMode("mode", Float) = 1.0
         _SrcBlend("SrcBlend", Float) = 1.0
         _DstBlend("DstBlend",Float) = 0.0
         _ZWrite("ZWrite",Float) = 0.0        

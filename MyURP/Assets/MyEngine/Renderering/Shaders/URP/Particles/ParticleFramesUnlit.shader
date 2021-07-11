@@ -45,7 +45,7 @@ Shader "MyEngine/URP/Particles/ParticleFramesUnlit"
         _Cutoff("Cut Off", Range(0.0, 1.0)) = 0.5
 
         [keywordEnum(Alpha,Additive)]
-        _Mode("mode", Float) = 1.0
+        _AlphaMode("mode", Float) = 1.0
         _SrcBlend("SrcBlend", Float) = 1.0
         _DstBlend("DstBlend",Float) = 0.0
         _ZWrite("ZWrite",Float) = 0.0        

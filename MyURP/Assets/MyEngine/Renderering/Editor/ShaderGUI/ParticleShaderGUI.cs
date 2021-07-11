@@ -34,11 +34,17 @@ public class ParticleShaderGUI : ShaderGUI
     private MaterialProperty m_PoserProp = null;
     private MaterialProperty m_BlackAlphaProp = null;
 
-    //Alpha Mode
+    //Alpha Clip
     private MaterialProperty m_AlphaClipProp = null;
     private MaterialProperty m_CutoffProp = null;
+
+    //Alpha Mode
+    private MaterialProperty m_AlphaModeProp = null;
     private MaterialProperty m_SrcBlendProp = null;
     private MaterialProperty m_DstBlendProp = null;
+
+    //Cull
+    private MaterialProperty m_CullProp = null;
 
     //Render
     private MaterialProperty m_QueueOffsetProp = null;
@@ -103,10 +109,8 @@ public class ParticleShaderGUI : ShaderGUI
     private MaterialProperty m_AmbientLightIntensityProp = null;
 
     //Dissolve
-    public MaterialProperty m_DissolveModeProp = null;
+    public MaterialProperty m_DissolveTypeProp = null;
     public MaterialProperty m_DissolveProp = null;
-    public MaterialProperty m_DissolveSoftEnableProp = null;
-    public MaterialProperty m_DissolveSoftStepProp = null;
     public MaterialProperty m_DissolveMapProp = null;
     public MaterialProperty m_DissolveOffsetXProp = null;
     public MaterialProperty m_DissolveOffsetYProp = null;
@@ -136,11 +140,11 @@ public class ParticleShaderGUI : ShaderGUI
     public MaterialProperty m_WarningSectorAngleProp = null;
     public MaterialProperty m_WarningSectorOutlineProp = null;
     public MaterialProperty m_WarningSectorOutlineAlphaProp = null;
-    public MaterialProperty m_WarningSectorIndicatorAlphaProp = null;
-    public MaterialProperty m_WarningSectorFlowFadeAlphaProp = null;
+    public MaterialProperty m_WarningSectorIndicatorProp = null;
+    public MaterialProperty m_WarningSectorFlowFadeProp = null;
 
     private Material m_Material;
-    private Material m_MaterialEditor;
+    private MaterialEditor m_MaterialEditor;
 
 
     public static class Styles 
@@ -193,9 +197,11 @@ public class ParticleShaderGUI : ShaderGUI
         m_AlphaClipProp = BaseShaderGUI.FindProperty("_AlphaClip", props, false);
         m_CutoffProp = BaseShaderGUI.FindProperty("_Cutoff", props, false);
 
+        m_AlphaModeProp = BaseShaderGUI.FindProperty("_AlphaMode", props, false);        
         m_SrcBlendProp = BaseShaderGUI.FindProperty("_SrcBlend", props, false);
         m_DstBlendProp = BaseShaderGUI.FindProperty("_DstBlend", props, false);
 
+        m_CullProp = BaseShaderGUI.FindProperty("_Cull", props, false);
 
         m_QueueOffsetProp = BaseShaderGUI.FindProperty("_QueueOffset", props, false);
         m_ZWriteProp = BaseShaderGUI.FindProperty("_ZWrite", props, false);
@@ -241,145 +247,239 @@ public class ParticleShaderGUI : ShaderGUI
         m_UVRadialEnableProp = BaseShaderGUI.FindProperty("_UVRadialEnabled", props, false);
 
 
-        m_RimLightingEnableProp = null;
-        m_RimLightModeProp = null;
-        m_RimInnerColorProp = null;
-        m_RimInnerColorFactorProp = null;
-        m_RimOuterColorProp = null;
-        m_RimOuterColorFactorProp = null;
-        m_RimOuterThicknessProp = null;
-        m_RimRadiusProp = null;
-        m_RimAlphaProp = null;
-        m_RimIntensityProp = null;
+        m_RimLightingEnableProp = BaseShaderGUI.FindProperty("_RimLightingEnable", props, false);
+        m_RimLightModeProp = BaseShaderGUI.FindProperty("_RimLightMode", props, false);
+        m_RimOuterColorProp = BaseShaderGUI.FindProperty("_RimOuterColor", props, false);
+        m_RimOuterColorFactorProp = BaseShaderGUI.FindProperty("_RimOuterColorFactor", props, false);
+        m_RimInnerColorProp = BaseShaderGUI.FindProperty("_RimInnerColor", props, false);
+        m_RimInnerColorFactorProp = BaseShaderGUI.FindProperty("_RimInnerColorFactor", props, false);
+        m_RimOuterThicknessProp = BaseShaderGUI.FindProperty("_RimOuterTickness", props, false);
+        m_RimRadiusProp = BaseShaderGUI.FindProperty("_RimRadius", props, false);
+        m_RimAlphaProp = BaseShaderGUI.FindProperty("_RimAlpha", props, false);
+        m_RimIntensityProp = BaseShaderGUI.FindProperty("_RimIntensity", props, false);
 
 
-        m_AmbientLightEnableProp = null;
-        m_AmbientLightIntensityProp = null;
+        m_AmbientLightEnableProp = BaseShaderGUI.FindProperty("_AmbientingEnable", props, false);
+        m_AmbientLightIntensityProp = BaseShaderGUI.FindProperty("_AmbientingIntensity", props, false);
 
         //Dissolve
-        m_DissolveModeProp = null;
-        m_DissolveProp = null;
-        m_DissolveSoftEnableProp = null;
-        m_DissolveSoftStepProp = null;
-        m_DissolveMapProp = null;
-        m_DissolveOffsetXProp = null;
-        m_DissolveOffsetYProp = null;
-        m_DissolveMaskMapProp = null;
-        m_DissolveMaskMapXSpeedProp = null;
-        m_DissolveMaskMapYSpeedProp = null;
+        m_DissolveTypeProp = BaseShaderGUI.FindProperty("_DissolveType", props, false);
+        m_DissolveProp = BaseShaderGUI.FindProperty("_Dissolve", props, false);
+     
+        
+        m_DissolveMapProp = BaseShaderGUI.FindProperty("_DissolveMap", props, false);
+        m_DissolveOffsetXProp = BaseShaderGUI.FindProperty("_DissolveOffsetX", props, false);
+        m_DissolveOffsetYProp = BaseShaderGUI.FindProperty("_DissolveOffsetY", props, false);
+
+        m_DissolveMaskMapProp = BaseShaderGUI.FindProperty("_DissolveMaskMap", props, false);
+        m_DissolveMaskMapXSpeedProp = BaseShaderGUI.FindProperty("_DissolveMaskMapUSpeed", props, false);
+        m_DissolveMaskMapYSpeedProp = BaseShaderGUI.FindProperty("_DissolveMaskMapVSpeed", props, false);
         
         
-        m_DissolveEdgeColorEnableProp = null;
-        m_DissolveEdgeColorProp = null;
-        m_DissolveEdgeFactorProp = null;
-        m_DissolveEdgeWidthProp = null;
-        m_DissolveEdgeWidthMidProp = null;
-        m_DissolveEdgeWidthInnerProp = null;
-        m_DissolveEdgeBlackProp = null;
+        m_DissolveEdgeColorEnableProp = BaseShaderGUI.FindProperty("_DissolveEdgeColorEnable", props, false);
+        m_DissolveEdgeColorProp = BaseShaderGUI.FindProperty("_EdgeColor", props, false);
+        m_DissolveEdgeFactorProp = BaseShaderGUI.FindProperty("_EdgeColorFactor", props, false);
+        m_DissolveEdgeWidthProp = BaseShaderGUI.FindProperty("_EdgeWidth", props, false);
+        m_DissolveEdgeWidthMidProp = BaseShaderGUI.FindProperty("_EdgeWidthMid", props, false);
+        m_DissolveEdgeWidthInnerProp = BaseShaderGUI.FindProperty("_EdgeWidthInner", props, false);
+        m_DissolveEdgeBlackProp = BaseShaderGUI.FindProperty("_EdgeBlack", props, false);
         
         
-        m_RowNumProp = null;
-        m_ColNumProp = null;
-        m_SpeedProp = null;
+        m_RowNumProp = BaseShaderGUI.FindProperty("_RowNum", props, false);
+        m_ColNumProp = BaseShaderGUI.FindProperty("_ColNum", props, false);
+        m_SpeedProp = BaseShaderGUI.FindProperty("_Speed", props, false);
         
         
-        m_WarningArrowFlowColorProp = null;
-        m_WarningArrowDurationProp = null;
+        m_WarningArrowFlowColorProp = BaseShaderGUI.FindProperty("_FlowColor", props, false);
+        m_WarningArrowDurationProp = BaseShaderGUI.FindProperty("_Duration", props, false);
         
-        m_WarningSectorEnableProp = null;
-        m_WarningSectorAngleProp = null;
-        m_WarningSectorOutlineProp = null;
-        m_WarningSectorOutlineAlphaProp = null;
-        m_WarningSectorIndicatorAlphaProp = null;
-        m_WarningSectorFlowFadeAlphaProp = null;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+        m_WarningSectorEnableProp = BaseShaderGUI.FindProperty("_WarningSector", props, false);
+        m_WarningSectorAngleProp = BaseShaderGUI.FindProperty("_WarningAngle", props, false);
+        m_WarningSectorOutlineProp = BaseShaderGUI.FindProperty("_WarningOutline", props, false);
+        m_WarningSectorOutlineAlphaProp = BaseShaderGUI.FindProperty("_WarningOutlineAlpha", props, false);
+        m_WarningSectorIndicatorProp = BaseShaderGUI.FindProperty("_WarningIndicator", props, false);
+        m_WarningSectorFlowFadeProp = BaseShaderGUI.FindProperty("_FlowFade", props, false);
+    }
+
+    private void ShaderPropertiesGUI() 
+    {
+        m_MaterialEditor.SetDefaultGUIWidths();
+        EditorGUIUtility.labelWidth = 150f;
+        DrawMain();
+    }
+
+    private void DrawMain() 
+    {
+        m_MaterialEditor.ShaderProperty(m_MainTexProp, "主帖图");
+        if (m_MainOffsetXProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_MainOffsetXProp, "主帖图 U流动");
+            m_MaterialEditor.ShaderProperty(m_MainOffsetYProp, "主帖图 V流动");
+        }
+        GUILayout.Space(5);
+
+        if (m_ColorProp != null ) 
+        {
+            m_MaterialEditor.ShaderProperty(m_ColorProp, "主颜色");
+            m_MaterialEditor.ShaderProperty(m_ColorFactorProp, "主颜色 强度");
+            if (m_PoserProp != null) 
+            {
+                m_MaterialEditor.ShaderProperty(m_PoserProp, "对比度");
+            }
+            if (m_GrayProp != null)
+            {
+                m_MaterialEditor.ShaderProperty(m_GrayProp, "灰度");
+            }
+            if (m_BlackAlphaProp != null)
+            {
+                m_MaterialEditor.ShaderProperty(m_BlackAlphaProp, "去黑底");
+            }
+            if (m_FogEnableProp != null)
+            {
+                m_MaterialEditor.ShaderProperty(m_FogEnableProp, "雾效");
+                if (m_FogEnableProp.floatValue == 1) 
+                {
+                    m_MaterialEditor.ShaderProperty(m_FogProp, "雾效强度");
+                }
+            }
+        }
+    }
+
+    private void DrawVertexOffset()
+    {
+       
+        if (m_VertexOffsetEnableProp != null)
+        {
+            m_MaterialEditor.ShaderProperty(m_VertexOffsetEnableProp, "顶点偏移");
+            if (m_VertexOffsetEnableProp.floatValue == 1)
+            {
+                m_MaterialEditor.ShaderProperty(m_VertexOffsetTexProp, "顶点偏移图");
+                m_MaterialEditor.ShaderProperty(m_VertexOffsetTexUProp, "顶点偏移图 U流动");
+                m_MaterialEditor.ShaderProperty(m_VertexOffsetTexVProp, "顶点偏移图 V流动");
+                m_MaterialEditor.ShaderProperty(m_VertexOffsetIntensityProp, "顶点偏移强度");
+            }
+        }
+
+        if (m_FlagWaveSpeed != null)
+        {
+            m_MaterialEditor.ShaderProperty(m_FlagWaveSpeed, "飘动速度");
+            m_MaterialEditor.ShaderProperty(m_FlagWaveFrequencyScale, "飘动频率");
+            m_MaterialEditor.ShaderProperty(m_FlagWaveWaveScale, "飘动幅度");
+            m_MaterialEditor.ShaderProperty(m_FlagWaveLengthOffset, "整体缩短");
+            m_MaterialEditor.ShaderProperty(m_FlagWaveWindScale, "总体缩放");
+
+            m_MaterialEditor.ShaderProperty(m_VertexOffsetTexProp, "顶点偏移图");
+            m_MaterialEditor.ShaderProperty(m_VertexOffsetTexUProp, "顶点偏移图 U流动");
+            m_MaterialEditor.ShaderProperty(m_VertexOffsetTexVProp, "顶点偏移图 V流动");
+            m_MaterialEditor.ShaderProperty(m_VertexOffsetIntensityProp, "顶点偏移强度");
+        }        
+    }
+
+    private void DrawAlpha() 
+    {
+        if (m_AlphaProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_AlphaProp, "Alpha");
+        }
+
+        if (m_AlphaClipProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_AlphaClipProp, "Alpha Clip 透明裁剪 ");
+            if (m_AlphaClipProp.floatValue == 1) 
+            {
+                m_Material.EnableKeyword("_ALPHATEST_ON");
+                m_Material.SetOverrideTag("RenderType","TransparentCutout");
+                m_ZWriteProp.floatValue = 1;
+                m_MaterialEditor.ShaderProperty(m_CutoffProp, "Cutoff 裁剪偏移 ");
+            }
+            else
+            {
+                m_Material.DisableKeyword("_ALPHATEST_ON");
+                m_Material.SetOverrideTag("RenderType", "Transparent");
+                m_ZWriteProp.floatValue = 0;
+            }
+        }
+
+        if (m_AlphaModeProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_AlphaModeProp, "透明混合模式");
+            SetBlendMode(m_Material, (BlendMode)m_AlphaModeProp.floatValue);
+        }
+    }
+
+    private void DrawMask() 
+    {
+
+        if (m_MaskTexProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_MaskTexProp, "遮罩图");
+            if (m_MaskOffsetXProp != null) 
+            {
+                m_MaterialEditor.ShaderProperty(m_MaskOffsetXProp, "遮罩图U 流动速度");
+                m_MaterialEditor.ShaderProperty(m_MaskOffsetYProp, "透明混V 流动速度");
+            }
+        }
+
+    }
+
+    private void DrawDecal() 
+    {
+        m_Material.SetInt("_StencilComp", true ? (int)CompareFunction.NotEqual : (int)CompareFunction.Always);
+    }
+
+    private void DrawRotateRadial() 
+    {
+        CoreUtils.SetKeyword(m_Material,"_UV_ROTATE_ON", true);
+        CoreUtils.SetKeyword(m_Material,"_UV_RADIAL_ON", true);
+    }
+
+    private void DrawCullMode() 
+    {
+        if (m_CullProp != null) 
+        {
+            m_MaterialEditor.ShaderProperty(m_CullProp, "剔除模式");
+        }
+    }
+
+    public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader) 
+    {
+        base.AssignNewShaderToMaterial(material, oldShader, newShader);
+
+        if (material != null) 
+        {
+            Reset();
+
+            material.SetFloat("_Cull", (float)CullMode.Back);
+            material.SetFloat("_AlphaMode", (float)BlendMode.Additive);
+            material.SetFloat("_ZWrite", 0);
+            SetBlendMode(material, BlendMode.Additive);         
+        }
+    }
+
+    public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        m_MaterialEditor = materialEditor;
+        m_Material = materialEditor.target as Material;
+        GetMaterialProperty(properties);
+        ShaderPropertiesGUI();
+    }
+
+    private void SetBlendMode(Material material, BlendMode mode) 
+    {
+        switch (mode)
+        {
+            case BlendMode.Alpha:
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.renderQueue = 3100;
+                break;
+            case BlendMode.Additive:
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.renderQueue = 3200;
+                break;
+            default:
+                break;
+        }
+    }
 }
