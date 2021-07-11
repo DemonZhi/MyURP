@@ -17,14 +17,6 @@ Shader "MyEngine/URP/Particles/ParticleFramesUnlit"
         _ColNum("_ColNum", Float) = 0.0
         _Speed("_Speed", Float) = 0.0
 
-        // FRAMES
-    half _RowNum;
-    half _ColNum;
-    half _Index;
-    half _Speed;
-    half _StartIndex;
-    half _EndIndex;
-
         [Toggle(_EFFECTFOG_ON)]
         _FogEnable("Fog Enable", Float) = 0.0
         _Fog("Fog", Range(0.0, 1.0 )) = 0.0
@@ -97,7 +89,12 @@ Shader "MyEngine/URP/Particles/ParticleFramesUnlit"
             HLSLPROGRAM
 
             #define MAINTEX_UV_SCROLL 1
-
+            #define FRAMES 1
+            
+            
+            #define BLACKALPHA          1
+            #define POWCOLOR            1
+            #define GRAYCOLOR           1
             #pragma vertex vert
             #pragma fragment frag
 

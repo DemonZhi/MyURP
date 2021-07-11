@@ -54,7 +54,6 @@ public class ParticleShaderGUI : ShaderGUI
     private MaterialProperty m_DistortionTexProp = null;
     private MaterialProperty m_DistortionOffsetXProp = null;
     private MaterialProperty m_DistortionOffsetYProp = null;
-    private MaterialProperty m_DistortionStrengthProp = null;
 
     //Noise Mask
     private MaterialProperty m_DistortionMaskTexProp = null;
@@ -79,8 +78,7 @@ public class ParticleShaderGUI : ShaderGUI
     private MaterialProperty m_SoftParticlesNearFadeDistanceProp = null;
     private MaterialProperty m_SoftParticlesFarFadeDistanceProp = null;
 
-    //Decal
-    private MaterialProperty m_DecalEnableProp = null;
+
 
     //RoateUV
     private MaterialProperty m_UVRotateEnableProp = null;
@@ -171,81 +169,76 @@ public class ParticleShaderGUI : ShaderGUI
         m_MainOffsetYProp = BaseShaderGUI.FindProperty("_MainTexOffsetY", props, false);
 
 
-        m_VertexOffsetEnableProp = BaseShaderGUI.FindProperty("_MainTex", props, false);
-        m_VertexOffsetTexProp = BaseShaderGUI.FindProperty("_MainTex", props, false);
-        m_VertexOffsetTexUProp = BaseShaderGUI.FindProperty("_MainTex", props, false);
-        m_VertexOffsetTexVProp = BaseShaderGUI.FindProperty("_MainTex", props, false);
-        m_VertexOffsetIntensityProp = BaseShaderGUI.FindProperty("_MainTex", props, false);
+        m_VertexOffsetEnableProp = BaseShaderGUI.FindProperty("_VertexOffsetEnable", props, false);
+        m_VertexOffsetTexProp = BaseShaderGUI.FindProperty("_VertexOffsetTex", props, false);
+        m_VertexOffsetTexUProp = BaseShaderGUI.FindProperty("_VertexOffsetTexU", props, false);
+        m_VertexOffsetTexVProp = BaseShaderGUI.FindProperty("_VertexOffsetTexV", props, false);
+        m_VertexOffsetIntensityProp = BaseShaderGUI.FindProperty("_VertexOffsetIndensity", props, false);
 
 
-        m_FlagWaveSpeed = null;
-        m_FlagWaveFrequencyScale = null;
-        m_FlagWaveWaveScale = null;
-        m_FlagWaveLengthOffset = null;
-        m_FlagWaveWindScale = null;
+        m_FlagWaveSpeed = BaseShaderGUI.FindProperty("_FlagWaveSpeed", props, false);
+        m_FlagWaveFrequencyScale = BaseShaderGUI.FindProperty("_FlagWaveFrequencyScale", props, false);
+        m_FlagWaveWaveScale = BaseShaderGUI.FindProperty("_FlagWaveScale", props, false);
+        m_FlagWaveLengthOffset = BaseShaderGUI.FindProperty("_FlagWaveLengthOffset", props, false);
+        m_FlagWaveWindScale = BaseShaderGUI.FindProperty("_FlagWaveWindScale", props, false);
 
 
-        m_ColorProp = null;
-        m_ColorFactorProp = null;
-        m_AlphaProp = null;
-        m_GrayProp = null;
-        m_PoserProp = null;
-        m_BlackAlphaProp = null;
+        m_ColorProp = BaseShaderGUI.FindProperty("_Color", props, false);
+        m_ColorFactorProp = BaseShaderGUI.FindProperty("_ColorFactor", props, false);
+        m_PoserProp = BaseShaderGUI.FindProperty("_Poser", props, false);
+        m_GrayProp = BaseShaderGUI.FindProperty("_Gray", props, false);
+        m_BlackAlphaProp = BaseShaderGUI.FindProperty("_BlackAlpha", props, false);
+        m_AlphaProp = BaseShaderGUI.FindProperty("_Alpha", props, false);
+
+        m_AlphaClipProp = BaseShaderGUI.FindProperty("_AlphaClip", props, false);
+        m_CutoffProp = BaseShaderGUI.FindProperty("_Cutoff", props, false);
+
+        m_SrcBlendProp = BaseShaderGUI.FindProperty("_SrcBlend", props, false);
+        m_DstBlendProp = BaseShaderGUI.FindProperty("_DstBlend", props, false);
 
 
-        m_AlphaClipProp = null;
-        m_CutoffProp = null;
-        m_SrcBlendProp = null;
-        m_DstBlendProp = null;
-
-
-        m_QueueOffsetProp = null;
-        m_ZWriteProp = null;
-        m_ProjectionPositionOffsetProp = null;
+        m_QueueOffsetProp = BaseShaderGUI.FindProperty("_QueueOffset", props, false);
+        m_ZWriteProp = BaseShaderGUI.FindProperty("_ZWrite", props, false);
+        m_ProjectionPositionOffsetProp = BaseShaderGUI.FindProperty("_ProjectionPositionOffsetZ", props, false);
 
 
 
-        m_MaskTexProp = null;
-        m_MaskOffsetXProp = null;
-        m_MaskOffsetYProp = null;
+        m_MaskTexProp = BaseShaderGUI.FindProperty("_MaskTex", props, false);
+        m_MaskOffsetXProp = BaseShaderGUI.FindProperty("_MaskOffsetX", props, false);
+        m_MaskOffsetYProp = BaseShaderGUI.FindProperty("_MaskOffsetY", props, false);
 
 
-        m_DistortionTexProp = null;
-        m_DistortionOffsetXProp = null;
-        m_DistortionOffsetYProp = null;
-        m_DistortionStrengthProp = null;
+        m_DistortionTexProp = BaseShaderGUI.FindProperty("_DistortionMap", props, false);
+        m_DistortionOffsetXProp = BaseShaderGUI.FindProperty("_DistortionOffsetX", props, false);
+        m_DistortionOffsetYProp = BaseShaderGUI.FindProperty("_DistortionOffsetY", props, false);
 
 
-        m_DistortionMaskTexProp = null;
-        m_DistortionMaskOffsetXProp = null;
-        m_DistortionMaskOffsetYProp = null;
-        m_DistortionSpeedProp = null;
+        m_DistortionMaskTexProp = BaseShaderGUI.FindProperty("_DistortionMaskMap", props, false);
+        m_DistortionMaskOffsetXProp = BaseShaderGUI.FindProperty("_DistortionMaskU", props, false);
+        m_DistortionMaskOffsetYProp = BaseShaderGUI.FindProperty("_DistortionMaskV", props, false);
+        m_DistortionSpeedProp = BaseShaderGUI.FindProperty("_DistortionSpeed", props, false);
 
 
-        m_DetailTexProp = null;
-        m_DetailOffsetXProp = null;
-        m_DetailOffsetYProp = null;
+        m_DetailTexProp = BaseShaderGUI.FindProperty("_DetailTex", props, false);
+        m_DetailOffsetXProp = BaseShaderGUI.FindProperty("_DetailOffsetX", props, false);
+        m_DetailOffsetYProp = BaseShaderGUI.FindProperty("_DetailOffsetY", props, false);
 
 
-        m_FogEnableProp = null;
-        m_FogProp = null;
+        m_FogEnableProp = BaseShaderGUI.FindProperty("_FogEnable", props, false);
+        m_FogProp = BaseShaderGUI.FindProperty("_Fog", props, false);
 
 
-        m_DistortionProp = null;
+        m_DistortionProp = BaseShaderGUI.FindProperty("_DistortionIntensity", props, false);
 
 
-        m_SoftParticlesEnableProp = null;
-        m_SoftParticlesNearFadeDistanceProp = null;
-        m_SoftParticlesFarFadeDistanceProp = null;
+        m_SoftParticlesEnableProp = BaseShaderGUI.FindProperty("_SoftParticlesEnable", props, false);
+        m_SoftParticlesNearFadeDistanceProp = BaseShaderGUI.FindProperty("_SoftParticlesNearFadeDistance", props, false);
+        m_SoftParticlesFarFadeDistanceProp = BaseShaderGUI.FindProperty("_SoftParticlesFarFadeDistance", props, false);
 
+        m_UVRotateEnableProp = BaseShaderGUI.FindProperty("_UVRotateEnabled", props, false);
+        m_UVRotateProp = BaseShaderGUI.FindProperty("_UVRotate", props, false);
 
-        m_DecalEnableProp = null;
-
-
-        m_UVRotateEnableProp = null;
-        m_UVRotateProp = null;
-
-        m_UVRadialEnableProp = null;
+        m_UVRadialEnableProp = BaseShaderGUI.FindProperty("_UVRadialEnabled", props, false);
 
 
         m_RimLightingEnableProp = null;
@@ -263,6 +256,42 @@ public class ParticleShaderGUI : ShaderGUI
         m_AmbientLightEnableProp = null;
         m_AmbientLightIntensityProp = null;
 
+        //Dissolve
+        m_DissolveModeProp = null;
+        m_DissolveProp = null;
+        m_DissolveSoftEnableProp = null;
+        m_DissolveSoftStepProp = null;
+        m_DissolveMapProp = null;
+        m_DissolveOffsetXProp = null;
+        m_DissolveOffsetYProp = null;
+        m_DissolveMaskMapProp = null;
+        m_DissolveMaskMapXSpeedProp = null;
+        m_DissolveMaskMapYSpeedProp = null;
+        
+        
+        m_DissolveEdgeColorEnableProp = null;
+        m_DissolveEdgeColorProp = null;
+        m_DissolveEdgeFactorProp = null;
+        m_DissolveEdgeWidthProp = null;
+        m_DissolveEdgeWidthMidProp = null;
+        m_DissolveEdgeWidthInnerProp = null;
+        m_DissolveEdgeBlackProp = null;
+        
+        
+        m_RowNumProp = null;
+        m_ColNumProp = null;
+        m_SpeedProp = null;
+        
+        
+        m_WarningArrowFlowColorProp = null;
+        m_WarningArrowDurationProp = null;
+        
+        m_WarningSectorEnableProp = null;
+        m_WarningSectorAngleProp = null;
+        m_WarningSectorOutlineProp = null;
+        m_WarningSectorOutlineAlphaProp = null;
+        m_WarningSectorIndicatorAlphaProp = null;
+        m_WarningSectorFlowFadeAlphaProp = null;
 
 
 
@@ -352,6 +381,5 @@ public class ParticleShaderGUI : ShaderGUI
 
 
 
-
-    }
+}
 }

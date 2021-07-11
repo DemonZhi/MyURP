@@ -85,7 +85,10 @@ Shader "MyEngine/URP/Particles/ParticleUnlit"
             HLSLPROGRAM
 
             #define MAINTEX_UV_SCROLL 1
-
+            #define BLACKALPHA 1
+            #define POWCOLOR 1
+            #define GRAYCOLOR 1
+            
             #pragma vertex vert
             #pragma fragment frag
 

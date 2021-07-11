@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -52,8 +51,7 @@ CBUFFER_START(UnityPerMaterial)
     half _MaskOffsetY;
 
 // DISSOLVE
-    half _Dissolve;
-    half _DissolveSoftStep;
+    half _Dissolve;   
     half4 _DissolveMap_ST;
     half _DissolveOffsetX;
     half _DissolveOffsetY;
@@ -73,8 +71,7 @@ CBUFFER_START(UnityPerMaterial)
     half _DissolveMaskMapUSpeed;
     half _DissolveMaskMapVSpeed;
 
-// NOISE
-    half _DistortionStrength;
+// NOISE    
     half _DistortionOffsetX;
     half _DistortionOffsetY;
     half4 _DistortionMap_ST;
@@ -127,6 +124,8 @@ CBUFFER_START(UnityPerMaterial)
     half    _FlagWaveLengthOffset;
     half4   _FlagWaveWindScale;
 
+// Screen Distortion
+    half    _DistortionIntensity;
 CBUFFER_END
 
 TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
@@ -159,6 +158,10 @@ TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
     TEXTURE2D(_DistortionMaskMap);        SAMPLER(sampler_DistortionMaskMap);
 #endif
 
+#if defined(PARTICLEDISTORTION)
+    TEXTURE2D(_CameraOpaqueTexture);        SAMPLER(sampler_LinearClamp);
+#endif
+
 struct Attributes
 {
     float4      positionOS          :   POSITION;
@@ -179,7 +182,7 @@ struct Varyings
 #endif 
 
 #if defined(MASK)
-    float4      maskUV              :   TEXCOORD3;
+    float2      maskUV              :   TEXCOORD3;
 #endif
 
 #if defined(DETAILTEX)
@@ -196,7 +199,7 @@ struct Varyings
 #endif
 
 #if defined(NOISEMASK)
-    float4      distortionMaskUV    :   TEXCOORD8;
+    float2      distortionMaskUV    :   TEXCOORD8;
 #endif
 
 #if defined(_SOFTPARTICLES_ON)
@@ -205,7 +208,10 @@ struct Varyings
 
 #if defined(DECAL) || defined(_DECAL_ON)
     float4      viewRayOS          :   TEXCOORD10;
-    float3      camPosOS           :   TEXCOORD11;
+    float3      camPosOS           :   TEXCOORD11;    
+#endif
+
+#if defined(DECAL) || defined(_DECAL_ON)|| defined(PARTICLEDISTORTION)
     float4      screenUV           :   TEXCOORD12;
 #endif
 
@@ -330,14 +336,24 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         output.color = input.color * _Color * max(_ColorFactor,0);
 
 #if defined(_UV_RADIAL_ON)
-        output.uv = input.uv;
-#else
+        output.uv = input.uv;        
+#elif defined(MAINTEX_UV_SCROLL)
+        output.uv = frac(float2(_MainOffsetX, _MainOffsetY) * _Time.y);
+#elif defined(FRAMES)
+        float time = floor(_Time.y * _Speed);
+        float row = floor(time / _ColNum);
+        float colum = time - row * _ColNum;
+
+        half2 framesUV = float2(input.uv.x / _ColNum, input.uv.y / _RowNum);
+
+        framesUV.x += colum / _ColNum;
+        framesUV.y += row / _RowNum;
+
+        output.uv = TRANSFORM_TEX(framesUV, _MainTex);        
+#else 
         output.uv = TRANSFORM_TEX(input.uv, _MainTex);
 #endif
 
-#if defined(MAINTEX_UV_SCROLL)
-        output.uv = frac(float2(_MainOffsetX, _MainOffsetY) * _Time.y);
-#endif
 
 #if defined(WARNINGARROW)
         output.attributesUV = input.uv;
@@ -402,7 +418,10 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         output.viewRayOS.w = positionVS.z;                    //记录相机空间深度
         float4x4 ViewToObjectMatrix = mul( GetWorldToObjectMatrix(), UNITY_MATRIX_I_V );
         output.viewRayOS.xyz = mul((float3x3)ViewToObjectMatrix, -viewRayVS).xyz;
-        output.camPosOS = ViewToObjectMatrix._m03_m13_m23;
+        output.camPosOS = ViewToObjectMatrix._m03_m13_m23;      
+#endif
+
+#if defined(DECAL) || defined(PARTICLEDISTORTION)
         output.screenUV = ComputeScreenPos(output.positionCS);
 #endif
 
@@ -485,7 +504,7 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
             half3 distortionMap = SAMPLE_TEXTURE2D(_DistortionMap, sampler_DistortionMap, input.distortionUV.xy).rgb;
             half2 distortionXY = distortionMap.rg * distortionMap.b * input.distortionUV.zw;
             #if defined(NOISEMASK)
-                half3 distortionMaskMap = SAMPLE_TEXTURE2D(_DistortionMaskMap, sampler_DistortionMaskMap)
+                half3 distortionMaskMap = SAMPLE_TEXTURE2D(_DistortionMaskMap, sampler_DistortionMaskMap, input.distortionMaskUV.xy).rgb;
                 distortionXY *= distortionMaskMap.rg * distortionMaskMap.b;
             #endif
 
@@ -502,8 +521,17 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 
         half4 mainTexColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
         
-        mainTexColor.a = (mainTexColor.r + mainTexColor.g + mainTexColor.b) * _BlackAlpha + ( 1 - _BlackAlpha) * mainTexColor.a ;
+        #if defined(BLACKALPHA)
+            mainTexColor.a = (mainTexColor.r + mainTexColor.g + mainTexColor.b) * _BlackAlpha + ( 1 - _BlackAlpha) * mainTexColor.a ;           
+        #endif
 
+        #if defined(POWCOLOR)
+            mainTexColor.rgb = pow(mainTexColor.rgb, _Poser.xxx).rgb;
+        #endif
+
+        #if defined(GRAYCOLOR)
+            mainTexColor.rgb = GrayColor(mainTexColor.rgb, _Gray);
+        #endif
 
         half4 col = input.color * mainTexColor;
 
@@ -543,7 +571,15 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         #endif
 
         #if defined(MASK)
-            col.a = col.a * SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, input.maskUV).r;
+            half4 maskTexColor = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, input.maskUV);
+            col.a = col.a * maskTexColor.r;
+        #endif
+
+        #if defined(PARTICLEDISTORTION)
+            float2 screenUV = input.screenUV.xy / input.screenUV.w;
+            screenUV = screenUV + mainTexColor.rg * maskTexColor.rg * mainTexColor.a * _DistortionIntensity;
+            col = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp,screenUV);
+            col.a = input.color.a * mainTexColor.a * maskTexColor.a;
         #endif
 
         #if defined(_AMBIENTLIGHT_ON)
@@ -608,55 +644,5 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
     }
 
 
-    Varyings vertexFrames(Attributes input)
-    {
-        Varyings  output = (Varyings)  0;
-        float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-        float4 positionCS = TransformWorldToHClip(positionWS);
-
-#if UNITY_REVERSED_Z
-        float ZHClipOffset = positionCS.z + _ProjectionPositionOffsetZ / positionCS.w;
-        positionCS.z = ZHClipOffset;
-#else
-        float ZHClipOffset = positionCS.z - _ProjectionPositionOffsetZ / positionCS.w;
-        positionCS.z = ZHClipOffset;
-#endif
-
-        output.positionCS = positionCS;
-        output.color = input.color;
-
-        float time = floor(_Time.y * _Speed);
-        float row = floor(time / _ColNum);
-        float colum = time - row * _ColNum;
-
-        half2 uv = float2(input.uv.x / _ColNum, input.uv.y / _RowNum);
-
-        uv.x += colum / _ColNum;
-        uv.y += row / _RowNum;
-
-        output.uv = TRANSFORM_TEX(uv, _MainTex);
-
-        #if defined(UIMODE_ON)
-            output.worldPos = positionWS.xy;
-        #endif
-
-        
-#if defined(_SOFTPARTICLES_ON)
-        float4 ndc = output.positionCS * 0.5f;
-        float4 positionNDC = 0;
-        positionNDC.xy = float2(ndc.x , ndc.y * _ProjectionParams.x) + ndc.w;
-        positionNDC.zw = output.positionCS.zw;
-        output.projectedPosition = positionNDC;
-#endif
-
-#if defined(_EFFECTFOG_ON)
-        output.fogAtten = ComputeFogAtten(positionWS) * _Fog;
-#endif
-        return output;
-    }
-
-    half4 fragFrames (Varyings input) : SV_Target 
-    {
-                
-    }
+   
 #endif

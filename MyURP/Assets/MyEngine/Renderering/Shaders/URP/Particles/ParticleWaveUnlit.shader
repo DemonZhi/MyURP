@@ -20,6 +20,8 @@ Shader "MyEngine/URP/Particles/ParticleWaveUnlit"
         _FlagWaveLengthOffset("_FlagWaveLengthOffset", Float) = -0.1
         _FlagWaveWindScale("_FlagWaveWindScale", Vector) = (1.0, 1.0, 1.0, 1.0)
 
+        [Toggle(_VERTEXOFFSET_ON)]
+        _VertexOffsetEnable ("_VertexOffsetEnable", Float) = 0
         _VertexOffsetTex ("_VertexOffsetTex", 2D) = "white" {}
         _VertexOffsetTexU("_VertexOffsetTexU", Float) = 0.1
         _VertexOffsetTexV("_VertexOffsetTexV", Float) = 0.1
@@ -98,7 +100,9 @@ Shader "MyEngine/URP/Particles/ParticleWaveUnlit"
 
             #define MAINTEX_UV_SCROLL 1
             #define PARTICLE_WAVE 1
-
+            #define BLACKALPHA 1
+            #define POWCOLOR 1
+            #define GRAYCOLOR 1
             #pragma vertex vert
             #pragma fragment frag
 
