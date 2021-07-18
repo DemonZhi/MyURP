@@ -1,0 +1,223 @@
+#pragma kernel Histogram
+#pragma kernel GetAverangeLuminance
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+static const float3 LUMA_RGB = float3(0.2126, 0.7152, 0.0722);
+
+#define WIDTH           480
+#define HEIGHT          270
+
+RWStructuredBuffer<uint> _HistogramBuffer;
+Texture2D<float4> _HDRSource;
+RWTexture2D<float> _AverangeTexture;
+
+SamplerState sampler_LinearClamp;
+
+groupshared uint shared_data[256];
+
+[numthreads(64,1,1)]
+void Histogram(uint3 GTid : SV_GroupThreadID, uint3 Gid : SV_GroupID)
+{
+    // TODO: insert actual code here!
+    const uint groupID = Gid.x;
+    const uint threadID = GTid.x;
+        
+    [unroll]
+    for (uint idx = 0; idx < 4; idx++)
+    {
+        const uint offset = threadID + idx * 64; 
+        shared_data[offset] = 0;
+        _HistogramBuffer[offset] = 0;
+    }
+    
+    GroupMemoryBarrierWithGroupSync();
+    
+    uint textureWidth = WIDTH - 64;
+    [loop]
+    for (uint PositionX = 0; PositionX < textureWidth; PositionX += 64)
+    {
+        uint CurrentPixelPositionX = PositionX + threadID;
+        uint CurrentPixelPositionY = groupID;
+        
+        //if (CurrentPixelPositionX < 480)
+        {
+            uint2 colorPos = int2(CurrentPixelPositionX, CurrentPixelPositionY);
+            
+            float3 color = _HDRSource.SampleLevel(sampler_LinearClamp, colorPos, 0.0).xyz; // Bilinear downsample 2x
+            
+            float luma = dot(color, LUMA_RGB);
+            
+            float lumaLog = log(luma + 1.0);
+            lumaLog *= 128;
+            uint uluma255 = (uint) lumaLog;
+            uluma255 = min(uluma255, 255);   
+            InterlockedAdd(shared_data[uluma255], 1);
+        }
+    }
+    GroupMemoryBarrierWithGroupSync();
+    
+    idx = 0;
+    [unroll]
+    for (idx = 0; idx < 4; idx++)
+    {
+        const uint offset = threadID + idx * 64;
+ 
+        uint data = shared_data[offset];
+        InterlockedAdd(_HistogramBuffer[offset], data);
+    }    
+}
+
+[numthreads(64, 1, 1)]
+void GetAverangeLuminance(uint3 GTid : SV_GroupThreadID)
+{
+    const uint threadID = GTid.x;
+    [unroll]
+    for (uint idx = 0; idx < 4; idx++)
+    {
+        const uint offset = threadID + idx * 64;
+ 
+        shared_data[offset] = _HistogramBuffer[offset];
+    }
+    GroupMemoryBarrierWithGroupSync();
+    
+    [branch]
+    if (threadID == 0)
+    {
+        // Total number of pixels in downscaled buffer 400 * 225
+        uint fTotalPixels = 400 * 225;
+ 
+        // Start number of pixels we want to incorporate in average luminance calculation 
+        int pixelsToConsiderStart = fTotalPixels * 0.32157;
+        int pixelsToConsiderEnd = fTotalPixels * 0.71979;
+ 
+        int pixelsMinusOne = fTotalPixels - 1;
+ 
+        pixelsToConsiderStart = clamp(pixelsToConsiderStart, 0, pixelsMinusOne);
+        pixelsToConsiderEnd = clamp(pixelsToConsiderEnd, pixelsToConsiderStart, pixelsMinusOne);
+ 
+        // Number of already processed pixels
+        int numProcessedPixels = 0;
+ 
+        // Luma cell [0-255]
+        int lumaValue = 0;
+ 
+        // Whether to continue execution of loop
+        bool bExitLoop = false;
+ 
+        // The purpose of the first loop is to omit "pixelsToConsiderStart" pixels.
+        // We keep number of omitted pixels from previous cells and lumaValue to use in the next loop.
+        // 
+        // For example: 
+        // * pixelsToConsiderStart = 33000
+        // * In the first pass of loop, shared_data[0] has 37000 pixels, which exits the loop
+        // The output from the loop are:
+        // numProcessedPixels = 0 (33000 pixels should have been ommitted, but 4000 pixels must be taken into consideration)
+        // lumaValue = 0 (because 4000 pixels left in shared_data[0], we will start calculating total luminance from 
+		// exactly that point)
+        [loop]
+        while (!bExitLoop)
+        {
+            // Get number of pixels with specific luma value.
+            uint numPixels = shared_data[lumaValue];
+ 
+            // Check how many pixels we would have with lumaValue
+            int tempSum = numProcessedPixels + numPixels;
+ 
+            // If more than pixelsToConsiderStart, exit the loop.
+            // Therefore, we will start calculating luminance from lumaValue.
+            // Simply speaking, pixelsToConsiderStart is number of "darken" pixels to omit before starting calculation.
+            [flatten]
+            if (tempSum > pixelsToConsiderStart)
+            {
+                bExitLoop = true;
+            }
+            else
+            {
+                numProcessedPixels = tempSum;
+                lumaValue++;
+            }
+        }
+ 
+ 
+        float finalAvgLuminance = 0.0f;
+ 
+        // Number of omitted pixels in the first loop
+        uint numProcessedPixelStart = numProcessedPixels;
+ 
+        // The purpose of this loop is to calculate contribution of pixels and average luminance.
+        // We start from point calculated in the previous loop, keeping number of omitted pixels and starting lumaValue positon.
+        // We decode luma value from [0-255] range, multiply it by number of pixels which have this specific luma, and sum it up until 
+        // we process pixelsToConsiderEnd pixels. 
+        // After that, we divide total contribution by number of analyzed pixels.
+        bExitLoop = false;
+        [loop]
+        while (!bExitLoop)
+        {
+            // Get number of pixels with specific luma value.
+            uint numPixels = shared_data[lumaValue];
+ 
+            // Add to all processed pixels
+            numProcessedPixels += numPixels;
+ 
+            // Currently processed luma, distributed in [0-255] range (uint)
+            uint encodedLumaUint = lumaValue;
+ 
+            // Number of pixels with currently processed luma
+            float numberOfPixelsWithCurrentLuma = numPixels;
+ 
+            // Currently processed, encoded [0-255] luma (float)
+            float encodedLumaFloat = encodedLumaUint;
+ 
+ 
+            // Reconstruct encodedLumaFloat by inversing encoding process from the first (distribution) pass,
+            // which was:
+            // 
+            // float luma = dot(hdrPixelColor, LUMA_RGB);
+            // float outLuma;               
+            //
+            // outLuma = luma + 1.0;        // because log(0) is undef and log(1) = 0
+            // outLuma = log( outLuma )     // logarithmically distribute
+            // outLuma = outLuma * 128      // scale by 128, which means log(1) * 128 = 0, log(2,71828) * 128 = 128, 
+											// log(7,38905) * 128 = 256
+ 
+            // we start by adding half (we don't want to have zero)
+            float fDecodedLuma = encodedLumaFloat + 0.5;
+ 
+            // and decode luminance
+            fDecodedLuma /= 128.0; // Divide by 128   
+            fDecodedLuma = exp(fDecodedLuma); // exp(x) which cancels log(x)
+            fDecodedLuma -= 1.0; // Subtract 1.0
+ 
+            // Calculate contribution of this luma
+            float fCurrentLumaContribution = numberOfPixelsWithCurrentLuma * fDecodedLuma;
+ 
+            // (Temporary) contribution from all previous passes and current one.
+            float tempTotalContribution = fCurrentLumaContribution + finalAvgLuminance;
+ 
+ 
+            [flatten] 
+            if (numProcessedPixels > pixelsToConsiderEnd)
+            {
+                // to exit the loop
+                bExitLoop = true;
+ 
+                 // We already processed all pixels we wanted, so perform final division here.
+                // Number of all processed pixels from user-selected start
+                int diff = numProcessedPixels - numProcessedPixelStart;
+ 
+                // Calculate final average luminance
+                finalAvgLuminance = tempTotalContribution / float(diff);
+            }
+            else
+            {
+                // Pass current contribution further and increase lumaValue
+                finalAvgLuminance = tempTotalContribution;
+                lumaValue++;
+            }
+        }
+ 
+        // Save average luminance
+        _AverangeTexture[uint2(0, 0)] = finalAvgLuminance;
+    }
+}
+
