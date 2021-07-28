@@ -333,8 +333,8 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 #endif
 
         output.positionCS = positionCS;
-        output.color = input.color * _Color * max(_ColorFactor,0);
-
+        output.color = input.color * _Color ;
+        output.color.rgb *= max(_ColorFactor,0);
 #if defined(_UV_RADIAL_ON)
         output.uv = input.uv;        
 #elif defined(MAINTEX_UV_SCROLL)
