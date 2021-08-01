@@ -579,6 +579,7 @@ half4 UniversalEyeFragmentPBR(InputData inputData, half3 albedo, half metallic, 
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.color *= _RoleMainLightIntensity;
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIlluminationRole(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS, fresnelScale, _RoleAmbientIntensity, _RoleReflectionIntensity);
@@ -615,6 +616,7 @@ half4 UniversalCorneaFragmentPBR(InputData inputData, half3 albedo, half metalli
     BRDFData  brdfData;
     InitializeBRDFData (albedo, metallic, specular, smoothness, alpha, brdfData);
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.color *= _RoleMainLightIntensity;
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0,0,0,0));
 
     half3 color = GlobalIlluminationRole(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS, fresnelScale, _RoleAmbientIntensity, _RoleReflectionIntensity * IBLMask);
@@ -648,6 +650,7 @@ half4 UniversalFurFragmentPBR(InputData inputData, half3 albedo, half metallic, 
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.color *= _RoleMainLightIntensity;
     mainLight.shadowAttenuation = ApplyMicroShadow(occlusion, inputData.normalWS, mainLight.direction, mainLight.shadowAttenuation);
 
     MixRealTimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0,0,0,0));
