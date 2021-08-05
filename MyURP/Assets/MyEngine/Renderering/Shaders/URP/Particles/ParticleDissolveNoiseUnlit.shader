@@ -23,7 +23,8 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _MaskTex ("_MaskTex", 2D) = "white" {}
         _MaskOffsetX("_MaskOffsetX", Float) = 0.0
         _MaskOffsetY("_MaskOffsetY", Float) = 0.0
-
+        _MaksPlusValue
+        
         _DistortionMap ("DistortionMap", 2D) = "black" {}
         _DistortionSpeed("_DistortionSpeed", Vector) = (0.0, 0.0, 1.0, 1.0)
     

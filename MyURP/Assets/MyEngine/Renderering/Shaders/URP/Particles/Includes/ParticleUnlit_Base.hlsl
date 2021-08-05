@@ -162,12 +162,21 @@ TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
     TEXTURE2D(_CameraOpaqueTexture);        SAMPLER(sampler_LinearClamp);
 #endif
 
+#if defined(_NORMALMAP)
+    TEXTURE2D(_NormalTex);        SAMPLER(sampler_NormalTex);
+#endif
+
+#if defined(NORMALMASK)
+    TEXTURE2D(_NormalMaskTex);        SAMPLER(sampler_NormalMaskTex);
+#endif
+
+
 struct Attributes
 {
     float4      positionOS          :   POSITION;
     float4      normalOS            :   NORMAL;
     half4       color               :   COLOR;
-    float2      uv                  :   TEXCOORD0;    
+    float2      uv                  :   TEXCOORD0;
 };
 
 struct Varyings
@@ -223,10 +232,19 @@ struct Varyings
     half2        fogAtten          :   TEXCOORD15;
 #endif
 
-#if WARNINGARROW
+#if defined(WARNINGARROW)
     float2 attributesUV            :   TEXCOORD16;
     float2 flowUV                  :   TEXCOORD17;
 #endif
+
+#if defined(PARTICLELIT) || defined(_NORMALMAP)
+    float2 normalUV            :   TEXCOORD18;    
+#endif
+
+#if defined(NORMALMASK)
+    float2 normalMaskUV            :   TEXCOORD19;    
+#endif
+
 };
 
 half4 RimLighting(half4 col, half NdotV, half4 innerColor, half4 outerColor, half innerThickness, half rimIntensity, half rimRadius, half rimMode, half rimAlphaMode)
@@ -403,7 +421,6 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         output.projectedPosition = positionNDC;
 #endif
 
-
 #if defined(_RIMLIGHTING_ON)
         float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
         output.normalWS = SafeNormalize_Half3(normalWS);
@@ -428,6 +445,16 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 #if defined(_EFFECTFOG_ON)
         output.fogAtten = ComputeFogAtten(positionWS) * _Fog;
 #endif
+
+#if defined(_NORMALMAP)
+        output.normalUV = TRANSFORM_TEX(input.uv, _NormalTex) + frac(float2(_NormalOffsetX, _NormalOffsetY) * _Time.y);
+#endif
+
+
+#if defined(NORMALMASK)
+        output.normalMaskUV = TRANSFORM_TEX(input.uv, _NormalMaskTex) + frac(float2(_NormalMaskOffsetX, _NormalMaskOffsetY) * _Time.y);
+#endif
+
         return output;
     }
 
@@ -464,26 +491,34 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 
             #if defined(NOISE)
                 #if defined(NOISEMASK)
-                    output.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionSpeed.x, _DistortionSpeed.y) * _Time.y);
-                    output.distortionUV.zw = input.uv * _DistortionSpeed.zw;
-                    output.distortionMaskUV = TRANSFORM_TEX(input.uv, _DistortionMaskMap) + frac( float2( _DistortionMaskU, _DistortionMaskV ) * _Time.y );
+                    input.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionSpeed.x, _DistortionSpeed.y) * _Time.y);
+                    input.distortionUV.zw = input.uv * _DistortionSpeed.zw;
+                    input.distortionMaskUV = TRANSFORM_TEX(input.uv, _DistortionMaskMap) + frac( float2( _DistortionMaskU, _DistortionMaskV ) * _Time.y );
                 #else
-                    output.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionOffsetX, _DistortionOffsetY) * _Time.y);
-                    output.distortionUV.zw = 1;
+                    input.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionOffsetX, _DistortionOffsetY) * _Time.y);
+                    input.distortionUV.zw = 1;
                 #endif
             #endif
 
             #if defined(DISSOLVE)
-                    output.dissolveUVAndValue.xy = input.uv * _DissolveMap_ST.xy + _DissolveMap_ST.zw  + frac(float2(_DissolveOffsetX, _DissolveOffsetY) * _Time.y);
+                    input.dissolveUVAndValue.xy = input.uv * _DissolveMap_ST.xy + _DissolveMap_ST.zw  + frac(float2(_DissolveOffsetX, _DissolveOffsetY) * _Time.y);
             #endif
             
             #if defined(DISSOLVEMASK)
-                    output.dissolveUVAndValue.zw = input.uv * _DissolveMaskMap_ST.xy + _DissolveMaskMap_ST.zw  + frac(float2(_DissolveMaskMapUSpeed, _DissolveMaskMapVSpeed) * _Time.y);
+                    input.dissolveUVAndValue.zw = input.uv * _DissolveMaskMap_ST.xy + _DissolveMaskMap_ST.zw  + frac(float2(_DissolveMaskMapUSpeed, _DissolveMaskMapVSpeed) * _Time.y);
             #endif
 
             #if defined( WARNINGARROW)
                 input.attributesUV = positionOS.xz + float2 (0.5,0.5);
                 input.flowUV = float2(input.attributesUV.x, input.attributesUV.y + ( 1 - _WarningDuration));
+            #endif
+
+            #if defined(_NORMALMAP)
+                input.normalUV = TRANSFORM_TEX(input.uv, _NormalTex) + frac(float2(_NormalOffsetX, _NormalOffsetY) * _Time.y);
+            #endif
+
+            #if defined(NORMALMASK)
+                input.normalMaskUV = TRANSFORM_TEX(input.uv, _NormalMaskTex) + frac(float2(_NormalMaskOffsetX, _NormalMaskOffsetY) * _Time.y);
             #endif
 
         #else
@@ -598,6 +633,15 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
             col = RimLighting(col, input.NdotV, _RimInnerColor , _RimOuterColor, _RimOuterTickness, _RimIntensity, _RimRadius, _RimLightMode, _RimAlpha);
         #endif
 
+        #if defined(_NORMALMAP)
+            output.normalUV = TRANSFORM_TEX(input.uv, _NormalTex) + frac(float2(_NormalOffsetX, _NormalOffsetY) * _Time.y);
+            SAMPLE_TEXTURE2D(_NormalTex);
+        #endif
+
+        #if defined(NORMALMASK)
+            output.normalMaskUV = TRANSFORM_TEX(input.uv, _NormalMaskTex) + frac(float2(_NormalMaskOffsetX, _NormalMaskOffsetY) * _Time.y);
+        #endif
+
 
         #if defined(DISSOLVE)
             half2 dissolveMap = SAMPLE_TEXTURE2D(_DissolveMap, sampler_DissolveMap, input.dissolveUVAndValue.xy).rg;
@@ -618,10 +662,10 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         #endif
 
         #if defined(UIMODE_ON)
-                if(_ClipRect.z > 0.001|| _ClipRect.w > 0.001)
-                {
-                    col.a *= UnityGet2DClipping(input.worldPos.xy, _ClipRect);
-                }
+            if(_ClipRect.z > 0.001|| _ClipRect.w > 0.001)
+            {
+                col.a *= UnityGet2DClipping(input.worldPos.xy, _ClipRect);
+            }
         #endif
 
 
