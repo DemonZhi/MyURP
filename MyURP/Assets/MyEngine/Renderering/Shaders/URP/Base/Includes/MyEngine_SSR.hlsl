@@ -158,11 +158,4 @@ float3 GetSSRUVZ(float4 positionCS, half NoV, float2 screenUV, float3 positionWS
     }
     return result;
 }
-
-float3 GetSSRUVZOtho(float4 positionCS, float3 positionWS, float3 reflectDir, half maxSampleCount, float sampleStep, half jitter)
-{
-    float3 uvz = SSRRayMarch(positionCS, positionWS, reflectDir, maxSampleCount, sampleStep, jitter);
-    return uvz;
-}
-
 #endif

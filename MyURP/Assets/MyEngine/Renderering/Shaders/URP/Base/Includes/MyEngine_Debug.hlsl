@@ -2,7 +2,7 @@
 #define MYENGINE_URP_DEBUG_INCLUDE
 
 #if defined(_MYENGINE_DEBUG)
-    half4 MYEngineDebug(half metallic, half smoothness, half occlusion, half4 vertexColor)
+    half4 MyEngineDebug(half metallic, half smoothness, half occlusion, half4 vertexColor)
     {
         #if defined(_MYENGINE_DEBUG_METALLIC)
             return half4(metallic.xxx, 1);

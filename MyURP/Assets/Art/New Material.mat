@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: New Material
-  m_Shader: {fileID: 4800000, guid: ad1979b801f6589448fb1af8d0cb9fd5, type: 3}
+  m_Shader: {fileID: 4800000, guid: 44a4e91689cdb1f459ffe2c3203787af, type: 3}
   m_ShaderKeywords: _INDICATOR_ON _WARNINGSECTOR_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -91,6 +91,7 @@ Material:
     m_Floats:
     - _Alpha: 0.4
     - _AlphaClip: 0
+    - _AlphaMode: 1
     - _Ambienting: 0
     - _AmbientingIntensity: 0
     - _BlackAlpha: 0

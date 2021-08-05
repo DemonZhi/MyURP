@@ -150,7 +150,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
     return half4(color, alpha);
 }
 
-half4 UniversalWarppedFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
+half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
