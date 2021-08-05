@@ -1,5 +1,5 @@
-#ifndef MYENGINE_URP_PARTICLE_BASE
-#define MYENGINE_URP_PARTICLE_BASE
+#ifndef MYENGINE_URP_PARTICLE_LIT_BASE
+#define MYENGINE_URP_PARTICLE_LIT_BASE
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -18,37 +18,40 @@ CBUFFER_START(UnityPerMaterial)
     half _ColorFactor;
     half4 _Color;
     half4 _MainTex_ST;
-    float4 _ClipRect;
+  
     half _ProjectionPositionOffsetZ;
     half _Poser;
     half _Gray;
     half _BlackAlpha;
     half _Fog;
-    half _UVRotateEnabled;
-    half _UVRotate;
+ 
+// Metallic
+    half _Metallic0;
+    half _Metallic;
 
-// VERTEXOFFSET
-    half _VertexOffsetTexU;
-    half _VertexOffsetTexV;
-    half4 _VertexOffsetIndensity;
+// Gloss
+    half _Gloss0;
+    half _Gloss;
 
 // ALPHATEST_ON
     half _AlphaClip;
     half _Cutoff;
 
-// DETAILTEX
-    half4 _DetailTex_ST;
-    half _DetailOffsetX;
-    half _DetailOffsetY;
-
 // MAINTEX_UV_SCROLL
     half _MainOffsetX;
     half _MainOffsetY;
 
-// MASK
-    half4 _MaskTex_ST;
-    half _MaskOffsetX;
-    half _MaskOffsetY;
+// NORMAL
+    half _NormalOffsetU;
+	half _NormalOffsetV;
+    half _NormalScale;
+    float4 _NormalTex_ST;
+
+// NORMAL Mask
+	half _NormalMaskOffsetU;
+	half _NormalMaskOffsetV;
+    half _NormalMaskOffset;
+    float4 _NormalMaskTex_ST;
 
 // DISSOLVE
     half _Dissolve;   
@@ -65,101 +68,12 @@ CBUFFER_START(UnityPerMaterial)
     half _EdgeWidthMid;
     half _EdgeBlack;
 
-
-// DISSOLVEMASK
-    half4 _DissolveMaskMap_ST;
-    half _DissolveMaskMapUSpeed;
-    half _DissolveMaskMapVSpeed;
-
-// NOISE    
-    half _DistortionOffsetX;
-    half _DistortionOffsetY;
-    half4 _DistortionMap_ST;
-
-// NOISE MASK
-    half4 _DistortionMaskMap_ST;
-    half _DistortionMaskU;
-    half _DistortionMaskV;
-    half4 _DistortionSpeed;
-
-// FRAMES
-    half _RowNum;
-    half _ColNum;
-    half _Index;
-    half _Speed;
-    half _StartIndex;
-    half _EndIndex;
-
-// SOFTPARTICLES
-    float4 _SoftParticleFadeParams;
-
-// RIMLIGHTING
-    half    _RimLighting;
-    half    _RimLightMode;
-    half4   _RimInnerColor;
-    half    _RimInnerColorFactor;
-    half4   _RimOuterColor;
-    half    _RimOuterColorFactor;
-    half    _RimOuterTickness;
-    half    _RimRadius;
-    half    _RimIntensity;
-    half    _RimAlpha;
-
-// AMBIENTLIGHT
-    half _AmbientingIntensity;
-
-// WARNING ARROW SECTOR
-    half4   _WarningFlowColor;
-    half    _WarningFlowFade;
-    half    _WarningDuration;
-    half    _WarningAngle;
-    half    _WarningSector;
-    half    _WarningOutline;
-    half    _WarningOutlineAlpha;
-
-// PARTICLE WAVE
-    half    _FlagWaveSpeed;
-    half    _FlagWaveFrequencyScale;
-    half4   _FlagWaveScale;
-    half    _FlagWaveLengthOffset;
-    half4   _FlagWaveWindScale;
-
-// Screen Distortion
-    half    _DistortionIntensity;
 CBUFFER_END
 
 TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
 
-#if defined(_VERTTEXOFFSET_ON) || defined(PARTICLE_WAVE)
-    TEXTURE2D(_VertexOffsetTex);        SAMPLER(sampler_VertexOffsetTex);
-#endif
-
-#if defined(MASK)
-    TEXTURE2D(_MaskTex);        SAMPLER(sampler_MaskTex);
-#endif
-
-#if defined(DETAILTEX)
-    TEXTURE2D(_DetailTex);        SAMPLER(sampler_DetailTex);
-#endif
-
 #if defined(DISSOLVE)
     TEXTURE2D(_DissolveMap);        SAMPLER(sampler_DissolveMap);
-#endif
-
-#if defined(DISSOLVEMASK)
-    TEXTURE2D(_DissolveMaskMap);        SAMPLER(sampler_DissolveMaskMap);
-#endif
-
-#if defined(NOISE)
-    TEXTURE2D(_DistortionMap);        SAMPLER(sampler_DistortionMap);
-#endif
-
-#if defined(NOISEMASK)
-    TEXTURE2D(_DistortionMaskMap);        SAMPLER(sampler_DistortionMaskMap);
-#endif
-
-#if defined(PARTICLEDISTORTION)
-    TEXTURE2D(_CameraOpaqueTexture);        SAMPLER(sampler_LinearClamp);
 #endif
 
 #if defined(_NORMALMAP)
@@ -174,8 +88,9 @@ TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
 struct Attributes
 {
     float4      positionOS          :   POSITION;
-    float4      normalOS            :   NORMAL;
     half4       color               :   COLOR;
+    float4      normalOS            :   NORMAL;
+    float4      tangentOS           :   TANGENT;
     float2      uv                  :   TEXCOORD0;
 };
 
@@ -185,91 +100,38 @@ struct Varyings
     half4 color : COLOR;
     float2 uv : TEXCOORD0;
     half3 normalWS : TEXCOORD1;
+    half3 positionWS : TEXCOORD2;
 
-#if defined(UIMODE_ON)
-    float2      worldPos            :   TEXCOORD2; 
-#endif 
-
-#if defined(MASK)
-    float2      maskUV              :   TEXCOORD3;
-#endif
-
-#if defined(DETAILTEX)
-    float2      detailUV            :   TEXCOORD4;
+#if defined(_NORMALMAP) && defined(_USE_NORMALMAP)
+    half4 normalWS   :   TEXCOORD3;
+    half4 tangentWS  :   TEXCOORD4;
+    half4 bitangentWS  :   TEXCOORD5;
+#else
+    half3 normalWS      : TEXCOORD3;
+    half3 viewDirWS      : TEXCOORD4;
 #endif
 
 #if defined(DISSOLVE)
-    half2       dissolve            :   TEXCOORD5;
-    half4       dissolveUVAndValue  :   TEXCOORD6;
-#endif
-
-#if defined(NOISE)
-    float4      distortionUV        :   TEXCOORD7;
-#endif
-
-#if defined(NOISEMASK)
-    float2      distortionMaskUV    :   TEXCOORD8;
-#endif
-
-#if defined(_SOFTPARTICLES_ON)
-    float4      projectedPosition   :   TEXCOORD9;
+    half2       dissolve            :   TEXCOORD6;
+    half4       dissolveUVAndValue  :   TEXCOORD7;
 #endif
 
 #if defined(DECAL) || defined(_DECAL_ON)
     float4      viewRayOS          :   TEXCOORD10;
-    float3      camPosOS           :   TEXCOORD11;    
+    float3      camPosOS           :   TEXCOORD11;
 #endif
 
 #if defined(DECAL) || defined(_DECAL_ON)|| defined(PARTICLEDISTORTION)
     float4      screenUV           :   TEXCOORD12;
 #endif
 
-#if defined(_RIMLIGHTING_ON)
-    half        NdotV              :   TEXCOORD10;
-#endif
-
 #if defined(_EFFECTFOG_ON)
     half2        fogAtten          :   TEXCOORD15;
 #endif
 
-#if defined(WARNINGARROW)
-    float2 attributesUV            :   TEXCOORD16;
-    float2 flowUV                  :   TEXCOORD17;
-#endif
-
-#if defined(PARTICLELIT) || defined(_NORMALMAP)
-    float2 normalUV            :   TEXCOORD18;    
-#endif
-
-#if defined(NORMALMASK)
-    float2 normalMaskUV            :   TEXCOORD19;    
-#endif
-
 };
 
-half4 RimLighting(half4 col, half NdotV, half4 innerColor, half4 outerColor, half innerThickness, half rimIntensity, half rimRadius, half rimMode, half rimAlphaMode)
-{
-    half4 color = half4(0,0,0,0);
 
-    half reverse = - rimMode + 1.0;
-    half PNV = -2 * rimMode + 1.0;
-
-    half rim = reverse - max(0, NdotV + rimRadius ) * PNV;
-    rim = max(0, rim);
-
-    half inner = rim + innerThickness;
-    inner = inner * inner;
-   
-
-    half3 finalOuterColor = outerColor.rgb * rim * rimIntensity;
-    half3 finalInnerColor = innerColor.rgb * inner * rimIntensity;
-
-    color.rbg =max(col + finalInnerColor, finalOuterColor + finalInnerColor);
-
-    half insideAlpha = lerp(inner, 1, outerColor.a) * innerColor.a;
-    color.a = (1 - rimAlphaMode) * insideAlpha * col.a + rimAlphaMode * insideAlpha;
-    return color;
-}
 
 half3 GrayColor(half3 color, half gray)
 {
@@ -277,70 +139,19 @@ half3 GrayColor(half3 color, half gray)
     return lerp(color, colorGray, gray);
 }
 
-float2 RadialUV(float2 uv, inout float r , float4 tiling)
+
+Varyings vert(Attributes input)
 {
-    uv = uv * 2.0 - 1.0;
-    r = length(uv);
-    uv = float2( frac( (atan2(uv.x, uv.y)) / 6.28318548202515 ), r );
-    uv.xy += tiling.zw * _Time.y;
-    uv *= tiling.xy;
-    return uv;
-}
-
-float2 RotateUV(float2 uv, float r)
-{
-    r = r * 0.017453;
-    uv -= 0.5f;
-    float cosAngle = cos(r);
-    float sinAngle = sin(r);
-    float3x3 rot = float3x3(cosAngle, -sinAngle, 0.5f, sinAngle, cosAngle, 0.5, 0, 0, 1);
-
-    uv = mul(rot, float3(uv.xy,1));
-
-    return uv;
-}
-
-float SoftParticles(float near, float far, float4 projection)
-{
-    float fade = 1;
-    if(near > 0.0 || far > 0.0)
-    {
-        float sceneZ = LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r, _ZBufferParams);
-        float thisZ = LinearEyeDepth( projection.z / projection.w , _ZBufferParams);
-        fade  = saturate(far * (sceneZ - near) - thisZ);
-   }
-   return fade;
-}
-
-float UnityGet2DClipping(in float2 position, in float4 clipRect)
-{
-    float2 inside = step(clipRect.xy, position.xy) * step(position.xy,clipRect.zw);
-
-    return inside.x * inside.y;
-}
-
-    Varyings vert(Attributes input)
-    {
         Varyings output = (Varyings)0;
-#if defined(_VERTEXOFFSET_ON) || defined(PARTICLE_WAVE)
-        float2 vertexOffsetUV = float2( input.uv.x + (_VertexOffsetTexU * _Time.y), input.uv.y + (_VertexOffsetTexV * _Time.y));
-#endif
-
-#if defined(_VERTEXOFFSET_ON)    
-        float4 vertexOffsetColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetTex, sampler_VertexOffsetTex, vertexOffsetUV, 0);
-        vertexOffsetColor = (vertexOffsetColor - 0.5) * 2;
-        input.position.xyz += (_VertexOffsetIndensity * vertexOffsetColor).rgb;
-#endif
-
-#if defined(PARTICLE_WAVE)     
-        half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetTex, sampler_VertexOffsetTex, vertexOffsetUV, 0).r;
-        vertexOffsetTexColor = _VertexOffsetIndensity * (2 * vertexOffsetTexColor - 1) * vertexOffsetTexColor;
-        AnimateFlagVertex( _FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale,_FlagWaveScale.xyz,
-        vertexOffsetTexColor,input.color.b, input.uv, 0.5, _FlagWaveWindScale.xyz, input.positionOS.xyz);
-#endif
 
         float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
         float4 positionCS = TransformWorldToHClip(positionWS);
+
+        VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+        VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+
+        half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+        half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
 
 #if UNITY_REVERSED_Z
         float ZHClipOffset = positionCS.z + _ProjectionPositionOffsetZ / positionCS.w;
@@ -373,62 +184,6 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
 #endif
 
 
-#if defined(WARNINGARROW)
-        output.attributesUV = input.uv;
-        output.flowUV = float2(input.uv.x, input.uv.y + (1 - _WarningDuration));        
-#endif
-
-#if defined(MASK)
-        output.maskUV = TRANSFORM_TEX(input.uv, _MaskTex) + frac(float2(_MaskOffsetX, _MaskOffsetY) * _Time.y);
-#endif
-
-#if defined(DETAILTEX)
-        output.detailUV = TRANSFORM_TEX(input.uv, _DetailTex) + frac(float2(_DetailOffsetX, _DetailOffsetY) * _Time.y);
-#endif
-
-#if defined(NOISE)
-    #if defined(NOISEMASK)
-        output.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionSpeed.x, _DistortionSpeed.y) * _Time.y);
-        output.distortionUV.zw = input.uv * _DistortionSpeed.zw;
-        output.distortionMaskUV = TRANSFORM_TEX(input.uv, _DistortionMaskMap) + frac( float2( _DistortionMaskU, _DistortionMaskV ) * _Time.y );
-    #else
-        output.distortionUV.xy = TRANSFORM_TEX(input.uv, _DistortionMap) + frac(float2(_DistortionOffsetX, _DistortionOffsetY) * _Time.y);
-        output.distortionUV.zw = 1;
-    #endif
-#endif
-
-#if defined(DISSOLVE)
-        output.dissolveUVAndValue.xy = TRANSFORM_TEX(input.uv, _DissolveMap) + frac(float2(_DissolveOffsetX, _DissolveOffsetY) * _Time.y);
-        half zVar = step(0.5f, _DissolveType);
-        output.dissolve.x = zVar * input.color.a + (1 - _Dissolve) * ( 1 - zVar);
-        half wVar = step(0.5, _DissolveType) - step(1.5f, _DissolveType);
-        output.dissolve.y = wVar * input.color.a + (1 - wVar);
-#endif
-
-#if defined(DISSOLVEMASK)
-        output.dissolveUVAndValue.zw = TRANSFORM_TEX(input.uv, _DissolveMaskMap) + frac( float2(_DissolveMaskMapUSpeed, _DissolveMaskMapVSpeed) * _Time.y );
-#endif
-
-#if defined(UIMODE_ON)
-        output.worldPos = positionWS.xy;
-#endif
-
-#if defined(_SOFTPARTICLES_ON)
-        float4 ndc = output.positionCS * 0.5f;
-        float4 positionNDC = 0;
-        positionNDC.xy = float2(ndc.x , ndc.y * _ProjectionParams.x) + ndc.w;
-        positionNDC.zw = output.positionCS.zw;
-        output.projectedPosition = positionNDC;
-#endif
-
-#if defined(_RIMLIGHTING_ON)
-        float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-        output.normalWS = SafeNormalize_Half3(normalWS);
-        float3 viewDirWS = GetCameraPositionWS() - positionWS;
-        viewDirWS  =SafeNormalize_Half3(viewDirWS);
-        output.NdotV = dot(normalWS, viewDirWS);
-#endif
-
 #if defined(DECAL)
         float4 positionVS = mul(UNITY_MATRIX_MV, input.positionOS); //转相机空间
         float3 viewRayVS = positionVS.xyz;                          
@@ -450,13 +205,12 @@ float UnityGet2DClipping(in float2 position, in float4 clipRect)
         output.normalUV = TRANSFORM_TEX(input.uv, _NormalTex) + frac(float2(_NormalOffsetX, _NormalOffsetY) * _Time.y);
 #endif
 
-
 #if defined(NORMALMASK)
         output.normalMaskUV = TRANSFORM_TEX(input.uv, _NormalMaskTex) + frac(float2(_NormalMaskOffsetX, _NormalMaskOffsetY) * _Time.y);
 #endif
 
-        return output;
-    }
+    return output;
+}
 
     half4 frag(Varyings input) : SV_Target
     {

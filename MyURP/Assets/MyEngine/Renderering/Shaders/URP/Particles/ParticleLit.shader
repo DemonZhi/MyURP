@@ -1,17 +1,15 @@
-Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
+Shader "MyEngine/URP/Particles/ParticleLit"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
         _MainTexOffsetX("_MainTexOffsetX", Float) = 0.0
         _MainTexOffsetY("_MainTexOffsetY", Float) = 0.0
-    
-        [Toggle(_VERTEXOFFSET_ON)]
-        _VertexOffsetEnable ("_VertexOffsetEnable", Float) = 0
-        _VertexOffsetTex("_VertexOffsetTex", 2D) =  "white" {}
-        _VertexOffsetTexU("_VertexOffsetTexU", Float) = 0.0
-        _VertexOffsetTexV("_VertexOffsetTexV", Float) = 0.0
-        _VertexOffsetIndensity("_VertexOffsetIndensity", Vector) =(0.0, 0.0, 1.0, 1.0)
+
+        _Metallic0("Metallic0", Float) = 1
+		_Metallic("Metallic", Float) = 6
+		_Gloss0("Gloss0", Float) = 0
+		_Gloss("Gloss", Float) = 1
 
         _Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
         _ColorFactor("Color Factor", Float) = 1.0
@@ -20,17 +18,19 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _BlackAlpha("BlackAlpha", Range(0.0, 1.0)) = 0.0
         _Alpha("Alpha", Range(0.0,100.0)) = 1.0
 
-        _MaskTex ("_MaskTex", 2D) = "white" {}
-        _MaskOffsetX("_MaskOffsetX", Float) = 0.0
-        _MaskOffsetY("_MaskOffsetY", Float) = 0.0
-        _MaksPlusValue
-        
-        _DistortionMap ("DistortionMap", 2D) = "black" {}
-        _DistortionSpeed("_DistortionSpeed", Vector) = (0.0, 0.0, 1.0, 1.0)
-    
-        _DistortionMaskMap ("_MaskTex", 2D) = "white" {}
-        _DistortionMaskU("_DistortionMaskU", Float) = 0.0
-        _DistortionMaskV("_DistortionMaskV", Float) = 0.0
+        _NormalTex ("_NormalTex", 2D) = "white" {}
+        _NormalOffsetU("_NormalOffsetU", Float) = 0.0
+        _NormalOffsetV("_NormalOffsetV", Float) = 0.0
+        _NormalScale("_NormalScale", Float) = 1.0
+
+        _NormalMaskTex ("_NormalMaskTex", 2D) = "white" {}
+        _NormalMaskOffsetU("_NormalMaskOffsetU", Float) = 0.0
+        _NormalMaskOffsetV("_NormalMaskOffsetV", Float) = 0.0
+        _NormalMaskOffset ("_NormalMaskOffset", Float) = 0.0
+
+        [Toggle(_EFFECTFOG_ON)]
+        _FogEnable("Fog Enable", Float) = 0.0
+        _Fog("Fog", Range(0.0, 1.0 )) = 0.0
 
         [keywordEnum(Dissolve, VertexAlpha_Dissolve,VertexAlpha_DissolveAlpha)]
         _DissolveType("DissolveType", Int) = 0
@@ -39,10 +39,6 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _DissolveOffsetX("_DissolveOffsetX", Float) = 0.0
         _DissolveOffsetY("_DissolveOffsetY", Float) = 0.0      
 
-        _DissolveMaskMap ("DistortionMap", 2D) = "black" {}
-        _DissolveMaskMapUSpeed("DistortionOffsetX", Float) = 0.0
-        _DissolveMaskMapVSpeed("DistortionOffsetY", Float) = 0.0
-
         _DissolveEdgeColorEnable("_DissolveEdgeColorEnable", Float) = 0
         _EdgeColor("_EdgeColor", Color) = (1.0, 1.0, 1.0, 1.0)
         _EdgeColorFactor("_EdgeColorFactor", Range(1.0, 100.0)) = 1.0
@@ -50,44 +46,6 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _EdgeWidthMid("_EdgeWidthMid", Range(0.0, 1.0)) = 0.01
         _EdgeWidthInner("_EdgeWidthInner", Range(0.0, 1.0)) = 0.01
         _EdgeBlack("_EdgeBlack", Range(0.0, 1.0)) = 0.0
-
-        [Toggle(_EFFECTFOG_ON)]
-        _FogEnable("Fog Enable", Float) = 0.0
-        _Fog("Fog", Range(0.0, 1.0 )) = 0.0
-
-        [Toggle(_AMBIENTLIGHT_ON)]
-        _AmbientingEnable("Ambient Lighting", Float) = 0.0
-        _AmbientingIntensity("Ambient Lighting Intensity", Range(0, 10)) = 0.0
-
-
-        _RimLightingEnable("_RimLightingEnable", Float) = 0.0
-         [keywordEnum(Outsode,Inside)]
-        _RimLightMode("_RimLightMode", Float) = 0.0
-        _RimOuterColor("_RimOuterColor", Color) = (1.0, 1.0, 1.0, 1.0)
-        _RimOuterColorFactor("_RimOuterColorFactor", Range(1.0, 20.0)) = 1
-        _RimInnerColor("_RimInnerColor", Color) =(1.0, 1.0, 1.0, 1.0)
-        _RimInnerColorFactor("_RimInnerColorFactor", Range(1.0, 20.0)) = 1
-        _RimOuterTickness("_RimOuterTickness", Range(0.0, 1.0)) = 0.0
-        _RimRadius("_RimRadius", Range(-1.0, 1.0)) = 0.0
-        _RimIntensity("_RimIntensity", Range(0.0, 1.0)) = 0.0
-        _RimAlpha("_RimAlpha", Range(0.0, 1.0)) = 1.0
-
-
-
-        [Toggle(_SOFTPARTICLES_ON)]
-        _SoftParticlesEnable("_SoftParticlesEnable",Float) = 0.0
-        _SoftParticlesNearFadeDistance("_SoftParticlesNearFadeDistance",Float) = 0.0
-        _SoftParticlesFarFadeDistance("_SoftParticlesFarFadeDistance",Float) = 0.0
-        _SoftParticlesFadeParams("_SoftParticlesFadeParams",Float) = 0.0
-
-        [Toggle(UV_ROTATE_ON)]
-        _UVRotateEnabled("UV Rotate Enable", Float) = 0.0
-        _UVRotate("UV Rotate", Float) = 0.0
-
-        [Toggle(UV_RADIAL_ON)]
-        _UVRadialEnabled("UV Rotate Enable", Float) = 0.0
-
-        _ClipRect("Clip Rect", vector) = (0.0, 0.0, 0.0, 0.0)
 
         [Toggle(_ALPHATEST_ON)]
         _AlphaClip("AlphaClip", Float) = 0.0
@@ -106,9 +64,9 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
         _ProjectionPositionOffsetZ("ProjectionPositionOffsetZ", Float) = 0.0
 
         _StencilComp("Stencil", Float) = 8.0
-        
+
     }
-    SubShader
+     SubShader
     {
         Tags 
         { 
@@ -141,14 +99,8 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
             #define BLACKALPHA 1
             #define POWCOLOR 1
             #define GRAYCOLOR 1
-
-            #define MASK 1
-            #define NOISE 1
-            #define NOISEMASK 1
-            #define DISSOLVE 1
-            #define DISSOLVEMASK 1
-
-            
+            #define PARTICLELIT 1
+            #define NORMALMASK 1
             #pragma vertex vert
             #pragma fragment frag
 
@@ -157,10 +109,10 @@ Shader "MyEngine/URP/Particles/ParticleDissolveNoiseUnlit"
             #pragma multi_compile _ _SOFTPARTICLES_ON
             #pragma multi_compile _ _UV_ROTATE_ON _UV_RADIAL_ON
             #pragma multi_compile _ _EFFECTFOG_ON
-            #pragma multi_compile _ _VERTEXOFFSET_ON
             #pragma multi_compile_local_fragment _ _AMBIENTLIGHT_ON
+            #pragma shader_feature_local _NORMALMAP
 
-            #include "./Includes/ParticleUnlit_Base.hlsl"
+            #include "./Includes/ParticleLit_Base.hlsl"
 
             ENDHLSL
            
