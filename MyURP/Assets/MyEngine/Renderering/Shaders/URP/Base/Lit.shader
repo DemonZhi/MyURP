@@ -101,8 +101,8 @@ Shader "MyEngine/URP/Lit"
 
             //--------------------------------------
             // MyEngine Global Setting
-            #pragma multi_compile _ _SGENGINE_QUALITY_HIGH
-            #include "../Base/Includes/SGEngine_Keywords.hlsl"
+            #pragma multi_compile _ _MYENGINE_QUALITY_HIGH
+            #include "../Base/Includes/MyEngine_Keywords.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag
@@ -144,13 +144,17 @@ Shader "MyEngine/URP/Lit"
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
                     output.shadowCoord = GetShadowCoord(vertexInput);
                 #endif
-                
-                output.positionCS = vertexInput.positionCS;
+                  float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+        float4 positionCS = TransformWorldToHClip(positionWS);
+
+                output.positionCS = positionCS;
+//                output.positionCS = vertexInput.positionCS;
                 return output;
             }
 
             half4 frag (Varyings input) : SV_Target
             {
+                return 1;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -193,5 +197,247 @@ Shader "MyEngine/URP/Lit"
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags{"LightMode" = "ShadowCaster"}
+
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "./Includes/Lit_Base.hlsl"
+
+            float3 _LightDirection;
+            
+            Varyings vert (Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+
+                #if UNITY_REVERSED_Z
+                    positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                #else
+                    positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE)
+                #endif
+
+                output.positionCS = positionCS;
+                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+
+                return output;
+            }
+
+            half4 frag (Varyings input) : SV_Target
+            {
+
+                #if !defined(SHADER_QUALITY_LOW)
+                    #if defined(LOD_FADE_CROSSFADE)
+                        LODDitheringTransition(input.positionCS.xy, unity_LODFade.x);
+                    #endif
+                #endif
+                Alpha( SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor,_Cutoff );
+                return 0;
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags{"LightMode" = "DepthOnly"}
+
+            ZWrite On            
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "./Includes/Lit_Base.hlsl"            
+            
+            Varyings vert (Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                return output;
+            }
+
+            half4 frag (Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                #if !defined(SHADER_QUALITY_LOW)
+                    #if defined(LOD_FADE_CROSSFADE)
+                        LODDitheringTransition(input.positionCS.xy, unity_LODFade.x);
+                    #endif
+                #endif
+                Alpha( SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor,_Cutoff );
+                return 0;
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On                        
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _NORMALMAP
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "./Includes/Lit_Base.hlsl"
+            
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                output.uv         = TRANSFORM_TEX(input.texcoord, _BaseMap);
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+
+                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+                output.normalWS.xyz = SafeNormalize_Half3(normalInput.normalWS);
+
+                return output;
+            }
+
+            float4 frag(Varyings input) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+                return float4(PackNormalOctRectEncode(TransformWorldToViewDir(input.normalWS, true)), 0.0, 0.0);
+            }
+            ENDHLSL
+        }
+
+                // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "Meta"
+            Tags{"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
+            #include "./Includes/Lit_Base.hlsl"
+
+            Varyings vert (Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                
+                output.positionCS = MetaVertexPosition(input.positionOS, input.lightmapUV, input.lightmapUV, unity_LightmapST, unity_DynamicLightmapST);
+                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+                return output;
+            }
+
+            half4 frag (Varyings input) : SV_Target
+            {
+                SurfaceData surfaceData;
+                InitializeStandardLitSurfaceData(input, surfaceData);
+
+                #if defined(_EMISSION)
+                    InputData inputData;
+                    InitializeInputData(input, surfaceData.normalTS, inputData);
+
+                    half3 reflectVector = reflect(-inputData.viewDirectionWS, inputData.normalWS);
+                    half3 cubemapEmission = SAMPLE_TEXTURECUBE(_CubemapEmissionCubemap, sampler_CubemapEmissionCubemap, reflectVector).rgb;
+                    surfaceData.emission *= cubemapEmission;
+                #endif
+
+                BRDFData brdfData;
+                InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+                MetaInput metaInput;
+                metaInput.Albedo = brdfData.diffuse +  brdfData.specular * brdfData.roughness * 0.5;
+                metaInput.SpecularColor = surfaceData.specular;
+                metaInput.Emission = surfaceData.emission;
+
+                return MetaFragment(metaInput);
+            }
+
+            ENDHLSL
+        }
     }
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
+
 }

@@ -13,8 +13,8 @@
 #include "./MyEngine_Common.hlsl"
 #include "./MyEngine_Fog.hlsl"
 #include "./MyEngine_Scene_Lighting.hlsl"
-#include "./MyEngine_Scene_Wind.hlsl"
-#include "./MyEngine_Scene_Wet.hlsl"
+#include "./MyEngine_Wind.hlsl"
+#include "./MyEngine_Wet.hlsl"
 
 #undef BUMP_SACLE_NOT_SUPPORTED
 
@@ -28,14 +28,15 @@ half _MetallicScale;
 half _RoughnessScale;
 CBUFFER_END
 
-TEXTURE2D(_NormalMap);      SAMPLE(sampler_NormalMap);
-TEXTURE2D(_MetallicGlossMap);      SAMPLE(sampler_MetallicGlossMap);
-TEXTURE2D(_CubemapEmissionCubemap);      SAMPLE(sampler_CubemapEmissionCubemap);
+TEXTURE2D(_NormalMap);      SAMPLER(sampler_NormalMap);
+TEXTURE2D(_MetallicGlossMap);      SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_CubemapEmissionCubemap);      SAMPLER(sampler_CubemapEmissionCubemap);
 
 struct Attributes
 {
     float4      positionOS          :   POSITION;
     float4      normalOS            :   NORMAL;
+    float4      tangentOS            :   TANGENT;
     half4       color               :   COLOR;
     float2      texcoord            :   TEXCOORD0;    
     float2      lightmapUV            :   TEXCOORD1;

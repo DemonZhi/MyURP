@@ -35,7 +35,7 @@ half Roughness2Porosity(half roughness)
 void WetBRDF(half metallic, inout half3 diffuseColor, inout half smoothness)
 {
     half porosity = Roughness2Porosity( 1 - smoothness);
-    half factor = lerp( 1, _WetDarkness, ( 1 - matallic) * porosity );
+    half factor = lerp( 1, _WetDarkness, ( 1 - metallic) * porosity );
     diffuseColor *= lerp(1, factor, _Wetness);
     smoothness = lerp(_WetSmoothness, smoothness, lerp(1, factor, 0.5 * _Wetness));
     smoothness = clamp(smoothness, 0, 1);
@@ -74,9 +74,9 @@ void WetTerrainBRDF(half metallic, inout half3 diffuseColor, inout half smoothne
 }
 
 //Ripple 
-half3 ComputeRipple(TEXTURE2D_PARAM(_BaseRippleTexture, sample_BaseRippleTexture), float2 uv, float time, half weight)
+half3 ComputeRipple(TEXTURE2D_PARAM(_BaseRippleTexture, sampler_BaseRippleTexture), float2 uv, float time, half weight)
 {
-    float ripple = SAMPLE_TEXTURE2D(_BaseRippleTexture, sampler_BaseRippleTexture, uv);
+    float4 ripple = SAMPLE_TEXTURE2D(_BaseRippleTexture, sampler_BaseRippleTexture, uv);
 
     ripple.yz = ripple.yz *2 - 1;
 
@@ -86,7 +86,7 @@ half3 ComputeRipple(TEXTURE2D_PARAM(_BaseRippleTexture, sample_BaseRippleTexture
 
     half dropFactor = saturate(0.2f + weight * 0.8f - dropFrac);
 
-    half finalFactor = dropFactor * ripple.x * sim(clamp(timeFrac * 9.0f, 0.0f, 3.0f) * 3.14159265359);
+    half finalFactor = dropFactor * ripple.x * sin(clamp(timeFrac * 9.0f, 0.0f, 3.0f) * 3.14159265359);
 
     return half3(ripple.yz * finalFactor, 1);
 }
@@ -113,7 +113,7 @@ half3 GetWaterFlowNormalTS(float3 positionWS, half3 normalWS, float4 positionCS)
 
     float distanceFadeFactor = positionCS.z * _ZBufferParams.z;
     
-    #if defined( UNITY_REVERSED_Z != 1 )
+    #if  UNITY_REVERSED_Z != 1 
         distanceFadeFactor = positionCS.z * rcp(positionCS.w);
     #endif
 
@@ -125,7 +125,7 @@ half3 GetWaterFlowNormalTS(float3 positionWS, half3 normalWS, float4 positionCS)
 
 }
 
-half3 GetWetNormalTS()
+half3 GetWetNormalTS(float3 positionWS, half3 normalWS, float4 positionCS)
 {
     half3 rippleNormalTS = GetRippleNormalTS (positionWS, normalWS);
     half3 flowNormalTS = GetWaterFlowNormalTS(positionWS, normalWS, positionCS);

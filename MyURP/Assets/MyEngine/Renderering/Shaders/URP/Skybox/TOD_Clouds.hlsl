@@ -7,7 +7,7 @@ half _CloudShadowScale;
 half _CloudShadowCutoff;
 half _CloudShadowFadeEnd;
 
-inline float3 CloudPosition(float3 viewDir,float3 Offset)
+inline float3 CloudPosition(float3 viewDir,float3 offset)
 {
     float mult = 1.0 / lerp(0.1, 1.0, viewDir.y);
     return (float3 (viewDir.x * mult + offset.x, 0, viewDir.z * mult + offset.z)) / TOD_CloudSize;
@@ -15,9 +15,9 @@ inline float3 CloudPosition(float3 viewDir,float3 Offset)
 
 inline float4 CloudUV(float3 viewDir, float3 offset)
 {
-    float cloudPos = CloudPosition(viewDir, offset);
-    float uv1 = cloudPos.xz + TOD_CloudOffset.XZ + TOD_CloudWind.xz;
-    float uv2 = mul(TOD_ROTATION_UV(radians(10.0)), cloudPos.xz )  + TOD_CloudOffset.XZ + TOD_CloudWind.xz;
+    float3 cloudPos = CloudPosition(viewDir, offset);
+    float2 uv1 = cloudPos.xz + TOD_CloudOffset.xz + TOD_CloudWind.xz;
+    float2 uv2 = mul(TOD_ROTATION_UV(radians(10.0)), cloudPos.xz )  + TOD_CloudOffset.xz + TOD_CloudWind.xz;
     return float4(uv1.x, uv1.y, uv2.x, uv2.y);
 }
 

@@ -4,7 +4,7 @@
 #include "./MyEngine_Lighting.hlsl"
 
 half _GlobalDiffuseWrap;
-half _GlobalDiffuseMultiplier;
+half _GlobalDiffuseWrapMultiplier;
 
 half _GlobalFoliageDiffuseWrap;
 half _GlobalFoliageDiffuseWrapMultiplier;
@@ -20,7 +20,7 @@ int _DebugType;
 
 TEXTURE2D(_ReflectionBlruRT); SAMPLER(sampler_ReflectionBlurRT);
 
-TEXTURECUBE(_GlobalTODCubemap);    SAMPLE(sampler__GlobalTODCubemap);
+TEXTURECUBE(_GlobalTODCubemap);    SAMPLER(sampler__GlobalTODCubemap);
 half4 _GlobalTODCubemap_HDR;
 
 float3 ApplySceneShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection, float shadowBiasOffset)
@@ -37,7 +37,7 @@ half3 GlossyEnvironmentReflectionBase(half3 reflectVector, half perceptualRoughn
 {
     #if !defined(_ENVIROMEENTREFLECTIONS_OFF)
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, Samplerunity_SpecCube0, reflectVector, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
         
         #if !defined(UNITY_USE_NATIVE_HDR)
             half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
@@ -90,7 +90,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
     half diffuseWrap, half diffuseWrapMultiplier, half lightmapShadow = 1)
 {
     BRDFData brdfData;
-    InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
         half4 shadowMask = inputData.shadowMask;
@@ -100,7 +100,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
         half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, InputData.positionWS, shadowMask);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
     mainLight.shadowAttenuation = min(mainLight.shadowAttenuation, lightmapShadow);
     mainLight.shadowAttenuation = ApplyMicroShadow(occlusion, inputData.normalWS, mainLight.direction, mainLight.shadowAttenuation);
 
@@ -116,7 +116,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
     half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + diffuseWrap) * diffuseWrapMultiplier );
     color += LightingPhysicallyBasedWrapped(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, NdotL);
 
-#if defined(_TRANSLUCENCY_LIT);
+#if defined(_TRANSLUCENCY_LIT)
     half translucencyShadowAttenuation = min(mainLight.shadowAttenuation, occlusion);
     half transPower = translucency.y;
     half3 transLightDir = mainLight.direction + inputData.normalWS * translucency.w;
@@ -136,7 +136,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
                 light.color *= aoFactor.directAmbientOcclusion;
             #endif  
 
-            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + diffuseWarp) * diffuseWrapMultiplier);
+            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + diffuseWrap) * diffuseWrapMultiplier);
             color += LightingPhysicallyBasedWrapped(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, NdotL);
         }
     #endif
@@ -153,7 +153,7 @@ half4 UniversalTranslucentFragmentPBR(InputData inputData, half3 albedo, half me
 half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
-    InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
         half4 shadowMask = inputData.shadowMask;
@@ -163,7 +163,7 @@ half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metall
         half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, InputData.positionWS, shadowMask);    
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);    
     mainLight.shadowAttenuation = ApplyMicroShadow(occlusion, inputData.normalWS, mainLight.direction, mainLight.shadowAttenuation);
 
 #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -175,7 +175,7 @@ half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metall
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + diffuseWrap) * diffuseWrapMultiplier );
+    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier );
 
     color += LightingPhysicallyBasedWrapped(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, NdotL);
 
@@ -190,7 +190,7 @@ half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metall
                 light.color *= aoFactor.directAmbientOcclusion;
             #endif  
 
-            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + diffuseWarp) * diffuseWrapMultiplier);
+            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier);
             color += LightingPhysicallyBasedWrapped(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, NdotL);
         }
     #endif
@@ -209,7 +209,7 @@ half4 UniversalWrappedFragmentPBR(InputData inputData, half3 albedo, half metall
 half4 UniversalWithoutIBLFragmentPBR(InputData inputData, half albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
-    InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
         half4 shadowMask = inputData.shadowMask;
@@ -219,7 +219,7 @@ half4 UniversalWithoutIBLFragmentPBR(InputData inputData, half albedo, half meta
         half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, InputData.positionWS, shadowMask);    
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);    
     mainLight.shadowAttenuation = ApplyMicroShadow(occlusion, inputData.normalWS, mainLight.direction, mainLight.shadowAttenuation);
 
 #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -231,7 +231,7 @@ half4 UniversalWithoutIBLFragmentPBR(InputData inputData, half albedo, half meta
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIlluminationWithoutIBL(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + diffuseWrap) * diffuseWrapMultiplier );
+    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier );
 
     color += LightingPhysicallyBasedWrapped(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, NdotL);
 
@@ -246,7 +246,7 @@ half4 UniversalWithoutIBLFragmentPBR(InputData inputData, half albedo, half meta
                 light.color *= aoFactor.directAmbientOcclusion;
             #endif  
 
-            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + diffuseWarp) * diffuseWrapMultiplier);
+            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier);
             color += LightingPhysicallyBasedWrapped(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, NdotL);
         }
     #endif
@@ -265,7 +265,7 @@ half4 UniversalWithoutIBLFragmentPBR(InputData inputData, half albedo, half meta
 half4 UniversalBlurFragmentPBR(InputData inputData, half albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha, half3 backgroundColor, half transmittance)
 {
     BRDFData brdfData;
-    InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
         half4 shadowMask = inputData.shadowMask;
@@ -287,7 +287,7 @@ half4 UniversalBlurFragmentPBR(InputData inputData, half albedo, half metallic, 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 color = GlobalIlluminationWithoutIBL(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + diffuseWrap) * diffuseWrapMultiplier );
+    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier );
 
     color += LightingPhysicallyBasedWrapped(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, NdotL);
 
@@ -324,7 +324,7 @@ half4 UniversalBlurFragmentPBR(InputData inputData, half albedo, half metallic, 
 half4 UniversalComplexFragmentPBR(InputData inputData, half albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha, half3 reflectionParam, half4 ssr, half3 lightDecalColor)
 {
     BRDFData brdfData;
-    InitializedBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
         half4 shadowMask = inputData.shadowMask;
@@ -334,7 +334,7 @@ half4 UniversalComplexFragmentPBR(InputData inputData, half albedo, half metalli
         half4 shadowMask = half4(1, 1, 1, 1);
     #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, InputData.positionWS, shadowMask);    
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);    
     mainLight.shadowAttenuation = ApplyMicroShadow(occlusion, inputData.normalWS, mainLight.direction, mainLight.shadowAttenuation);
 
 #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -349,8 +349,8 @@ half4 UniversalComplexFragmentPBR(InputData inputData, half albedo, half metalli
     mainLight.color *= lightDecalColor;
 #endif
 
-    half3 color = GlobalIlluminationBase(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + diffuseWrap) * diffuseWrapMultiplier );
+    half3 color = GlobalIlluminationBase(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS, reflectionParam, ssr);
+    half NdotL = saturate( (dot(inputData.normalWS, mainLight.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier );
 
     color += LightingPhysicallyBasedWrapped(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, NdotL);
 
@@ -365,7 +365,7 @@ half4 UniversalComplexFragmentPBR(InputData inputData, half albedo, half metalli
                 light.color *= aoFactor.directAmbientOcclusion;
             #endif  
 
-            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + diffuseWarp) * diffuseWrapMultiplier);
+            half NdotL  = saturate((dot(inputData.normalWS, light.direction) + _GlobalDiffuseWrap) * _GlobalDiffuseWrapMultiplier);
             color += LightingPhysicallyBasedWrapped(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, NdotL);
         }
     #endif

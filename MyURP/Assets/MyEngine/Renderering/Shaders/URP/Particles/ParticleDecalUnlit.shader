@@ -1,4 +1,4 @@
-Shader "MyEngine/URP/Particles/ParticleUnlit"
+Shader "MyEngine/URP/Particles/ParticleDecalUnlit"
 {
     Properties
     {
