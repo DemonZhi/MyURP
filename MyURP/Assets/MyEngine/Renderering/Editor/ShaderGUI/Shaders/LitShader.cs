@@ -7,7 +7,7 @@ namespace MyEngine.EditorExtensition.ShaderGUI
 {
     public class LitShader : BaseShaderGUI
     {
-        private LitGUI.
+        //private LitGUI.
         public override void MaterialChanged(Material material)
         {
             throw new NotImplementedException();

@@ -145,77 +145,77 @@ namespace MyEngine.EditorExtensition.ShaderGUI
             public MaterialProperty lightDecalIntensityProp;
 
 
-            public LitProperties(MaterialProperty[] properties)
-            {
-                // Surface Input Props
-                metallicScale = BaseShaderGUI.FindProperty("_MetallicScale", properties, false);
-                specColor = BaseShaderGUI.FindProperty("_SpecColor", properties, false);
-                metallicGlossMap = BaseShaderGUI.FindProperty("_MetallicGlossMap", properties, false);
-                roughnessScale = BaseShaderGUI.FindProperty("_RoughnessScale", properties, false);
-                bumpMapProp = BaseShaderGUI.FindProperty("_NormalMap", properties, false);
-                emissionIntensity = BaseShaderGUI.FindProperty("_EmissionIntensity", properties, false); 
-                cubemapEmissionCubemap = BaseShaderGUI.FindProperty("_CubemapEmissionCubemap", properties, false); 
+            /* 
+                        public LitProperties(MaterialProperty[] properties)
+                        {
+                            // Surface Input Props
+                            metallicScale = BaseShaderGUI.FindProperty("_MetallicScale", properties, false);
+                            specColor = BaseShaderGUI.FindProperty("_SpecColor", properties, false);
+                            metallicGlossMap = BaseShaderGUI.FindProperty("_MetallicGlossMap", properties, false);
+                            roughnessScale = BaseShaderGUI.FindProperty("_RoughnessScale", properties, false);
+                            bumpMapProp = BaseShaderGUI.FindProperty("_NormalMap", properties, false);
+                            emissionIntensity = BaseShaderGUI.FindProperty("_EmissionIntensity", properties, false); 
+                            cubemapEmissionCubemap = BaseShaderGUI.FindProperty("_CubemapEmissionCubemap", properties, false); 
 
-                // Planar Reflection
-                reflectionType = BaseShaderGUI.FindProperty("_ReflectionType", properties, false); 
-                reflectionPower = BaseShaderGUI.FindProperty("_ReflectionPower", properties, false);
-
-
-                ssrMaxSampleCount = BaseShaderGUI.FindProperty("_SSRMaxSampleCount", properties, false); 
-                ssrMinSampleStep = BaseShaderGUI.FindProperty("_SSRMinSampleStep", properties, false); 
-                ssrMaxSampleStep = BaseShaderGUI.FindProperty("_SSRMaxSampleStep", properties, false);
-                ssrIntensity = BaseShaderGUI.FindProperty("_SSRIntensity", properties, false); 
-                ssrJitter = BaseShaderGUI.FindProperty("_SSRJitter", properties, false); 
-                ssrBlurX = BaseShaderGUI.FindProperty("_SSRBlurX", properties, false); 
-                ssrBlurY = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false); 
+                            // Planar Reflection
+                            reflectionType = BaseShaderGUI.FindProperty("_ReflectionType", properties, false); 
+                            reflectionPower = BaseShaderGUI.FindProperty("_ReflectionPower", properties, false);
 
 
-                topEnable = BaseShaderGUI.FindProperty("topEnable", properties, false);
-                topMap = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topColor = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topNoiseMap = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topBump = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topOffset = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topAOOffset = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topContrast = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
-                topIntensity = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            ssrMaxSampleCount = BaseShaderGUI.FindProperty("_SSRMaxSampleCount", properties, false); 
+                            ssrMinSampleStep = BaseShaderGUI.FindProperty("_SSRMinSampleStep", properties, false); 
+                            ssrMaxSampleStep = BaseShaderGUI.FindProperty("_SSRMaxSampleStep", properties, false);
+                            ssrIntensity = BaseShaderGUI.FindProperty("_SSRIntensity", properties, false); 
+                            ssrJitter = BaseShaderGUI.FindProperty("_SSRJitter", properties, false); 
+                            ssrBlurX = BaseShaderGUI.FindProperty("_SSRBlurX", properties, false); 
+                            ssrBlurY = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false); 
 
 
-                flagWaveEnable;
-                flagWaveSpeed;
-                flagWaveFrequencyScale;
-                flagWaveWaveScale;
+                            topEnable = BaseShaderGUI.FindProperty("topEnable", properties, false);
+                            topMap = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topColor = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topNoiseMap = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topBump = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topOffset = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topAOOffset = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topContrast = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
+                            topIntensity = BaseShaderGUI.FindProperty("_SSRBlurY", properties, false);
 
-                flagWaveLengthOffset;
-                flagWaveWindScale;
+                           flagWaveEnable;
+                            flagWaveSpeed;
+                            flagWaveFrequencyScale;
+                            flagWaveWaveScale;
 
-                vertexOffsetMapProp;
-                vertexOffsetMapUProp;
-                vertexOffsetMapVProp;
-                vertexOffsetIntensityProp;
+                            flagWaveLengthOffset;
+                            flagWaveWindScale;
 
-
-                effectStreamEnableProp;
-                effectStreamFactorProp;
-                effectStreamColorFactorProp
-                effectStreamTexFactorProp;
-                effectStreamOffsetXProp;
-                effectStreamOffsetYProp;
-                effectStreamMapProp;
-
-
-                blurOffsetXProp;
-                blurOffsetYProp;
-                transmittanceProp;
+                            vertexOffsetMapProp;
+                            vertexOffsetMapUProp;
+                            vertexOffsetMapVProp;
+                            vertexOffsetIntensityProp;
 
 
-                lightDecalOnProp;
-                lightDecalMapProp;
-                lightDecalTilingOffsetProp;
-                lightDecalIntensityProp;
-            
-            }
+                            effectStreamEnableProp;
+                            effectStreamFactorProp;
+                            effectStreamColorFactorProp
+                            effectStreamTexFactorProp;
+                            effectStreamOffsetXProp;
+                            effectStreamOffsetYProp;
+                            effectStreamMapProp;
+
+
+                            blurOffsetXProp;
+                            blurOffsetYProp;
+                            transmittanceProp;
+
+
+                            lightDecalOnProp;
+                            lightDecalMapProp;
+                            lightDecalTilingOffsetProp;
+                            lightDecalIntensityProp;*/
+
         }
     }
-}
+    }
+
 

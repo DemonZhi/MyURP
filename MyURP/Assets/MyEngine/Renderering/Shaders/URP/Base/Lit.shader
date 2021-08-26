@@ -26,10 +26,10 @@ Shader "MyEngine/URP/Lit"
         [HideInInspector] _Surface("__surface", Float) = 0.0
         [HideInInspector] _Blend("__blend", Float) = 0.0
         [HideInInspector] _AlphaClip("__Clip", Float) = 0.0
-        [HideInInspector] _SrcBlend("__Src", Float) = 0.0
+        [HideInInspector] _SrcBlend("__Src", Float) = 1.0
         [HideInInspector] _DstBlend("__Dst", Float) = 0.0
-        [HideInInspector] _Zwrite("__Zw", Float) = 0.0
-        [HideInInspector] _Cull("__cull", Float) = 0.0
+        [HideInInspector] _Zwrite("__Zw", Float) = 1.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
 
         _ReceiveShadows("Receive Shadows", Float) = 1.0
 
@@ -121,8 +121,7 @@ Shader "MyEngine/URP/Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
                 half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-                half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-                half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+                half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);                
 
                 output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
@@ -138,23 +137,20 @@ Shader "MyEngine/URP/Lit"
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
                 OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
-                output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+                output.fogFactorAndVertexLight = half4(0, vertexLight);
                 output.positionWS = vertexInput.positionWS;
 
                 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
                     output.shadowCoord = GetShadowCoord(vertexInput);
                 #endif
-                  float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-        float4 positionCS = TransformWorldToHClip(positionWS);
-
-                output.positionCS = positionCS;
-//                output.positionCS = vertexInput.positionCS;
+                
+                output.fogAtten = ComputeFogAtten(vertexInput.positionWS);
+                output.positionCS = vertexInput.positionCS;
                 return output;
             }
 
             half4 frag (Varyings input) : SV_Target
-            {
-                return 1;
+            {              
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -167,6 +163,8 @@ Shader "MyEngine/URP/Lit"
                 SurfaceData surfaceData;
                 InitializeStandardLitSurfaceData(input, surfaceData);
 
+                
+                
                 InputData inputData;
                 InitializeInputData(input, surfaceData.normalTS, inputData);
 
@@ -186,12 +184,13 @@ Shader "MyEngine/URP/Lit"
                     #endif
                     WetBRDF(surfaceData.metallic, surfaceData.albedo, surfaceData.smoothness);
                 #endif
-
+//return half4(surfaceData.occlusion.xxx,1);
                 #if defined(_MYENGINE_DEBUG)
                     return MyEngineDebug(surfaceData.metallic, surfaceData.smoothness, surfaceData.occlusion, input.vertexColor);
                 #endif
 
                 half4 color = UniversalWrappedFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness,surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+                
                 color.rgb = ApplyFog(color.rgb, input.fogAtten);
                 return color;
             }

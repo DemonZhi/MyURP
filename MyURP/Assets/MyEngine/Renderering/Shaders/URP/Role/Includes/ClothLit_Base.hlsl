@@ -30,61 +30,46 @@ half _FresnelScale;
 half4 _RimOuterColor;
 half4 _RimInnerColor;
 half _RimOuterThickness;
+half _RimIntensity;
 
+half _DissolveCutoff;
+half4 _DissolveEdgeColor;
+half _DissolveEdgeWidth;
+float _DissolveNoiseMapTiling;
+half _DissolveNoiseStrength;
 
+half4 _DetailParam;
+half3 _DetailColor;
 
-
-
-float4 _LightDecalTilingOffset;
-half _LightDecalIntensity;
-
-
-
+half _SilkDetailUVScale;
+half _SilkSpec01Shift;
+half _SilkSpec01Range;
+half3 _SilkSpec01Color;
+half _SilkSpec02Shift;
+half _SilkSpec02Range;
+half3 _SilkSpec02Color;
 
 CBUFFER_END
 
-TEXTURE2D(_NormalMap);      SAMPLE(sampler_NormalMap);
-TEXTURE2D(_MetallicGlossMap);      SAMPLE(sampler_MetallicGlossMap);
-TEXTURE2D(_CubemapEmissionCubemap);      SAMPLE(sampler_CubemapEmissionCubemap);
 
-TEXTURE2D(_TopMap);      SAMPLE(sampler_TopMap);
-TEXTURE2D(_TopNoiseMap);      SAMPLE(sampler_TopNoiseMap);
-TEXTURE2D(_TopBumpMap);      SAMPLE(sampler_TopBumpMap);
-TEXTURE2D(_VertexOffsetMap);      SAMPLE(sampler_VertexOffsetMap);
-TEXTURE2D(_SteamMap);      SAMPLE(sampler_SteamMap);
-TEXTURE2D(_LightDecalMap);      SAMPLE(sampler_LightDecalMap);
 
-#if defined(_REFLECTIONTYPE_SSR)
-TEXTURE2D(_CameraDepthTexture);      SAMPLE(sampler_CameraDepthTexture);
-TEXTURE2D(_CameraOpaqueTexture);      SAMPLE(sampler_LinearClamp);
-#include "../Base/Includes/SGEngine_SSR.hlsl"
-half4 GetSSR(float4 positionCS, half Nov, float2 screenUV, float3 positionWS, float3 reflectDir)
-{    
-    half3 ssrColor = half3(0, 0, 0);
-    float3 uvz = GetSSRUVZ(positionCS, Nov, screenUV, positionWS, reflectDir, _SSRMaxSampleCount, _SSRSampleStep, _SSRJitter);
-    float2 off1 = float2(1.3846153846, 1.3846153846) * _SSRBlurX / _ScreenParams.x;
-    float2 off2 = float2(3.2307692308, 3.2307692308) * _SSRBlurY / _ScreenParams.y;
-    float2 sampleUV = uvz.xy;
+TEXTURE2D(_NormalMap);      SAMPLER(sampler_NormalMap);
+TEXTURE2D(_MetallicGlossMap);      SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_SkinLUT);      SAMPLER(sampler_SkinLUT);
 
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off1).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off1).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off2).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off2).rgb * 0.2270270270;
-    ssrColor *= _SSRIntensity;
-
-    return half4(ssrColor, uvz.z);
-}
-
-#endif
-
+TEXTURE2D(_DissolveNoiseMap);      SAMPLER(sampler_DissolveNoiseMap);
+TEXTURE2D(_DetailNormalMap);      SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_SilkDetailMap);      SAMPLER(sampler_SilkDetailMap);
+TEXTURE2D(_FlowLightMap);      SAMPLER(sampler_FlowLightMap);
+TEXTURE2D(_FlowLightMaskMap);      SAMPLER(sampler_FlowLightMaskMap);
+TEXTURE2D(_DetailMap);      SAMPLER(sampler_FlowLightMaskMap);
 
 
 struct Attributes
 {
     float4      positionOS          :   POSITION;
     float4      normalOS            :   NORMAL;
-    half4       color               :   COLOR;
+    float4      tangentOS           :   TANGENT;    
     float2      texcoord            :   TEXCOORD0;    
     float2      lightmapUV            :   TEXCOORD1;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -92,23 +77,19 @@ struct Attributes
 
 struct Varyings
 {
-    float4 positionCS :  SV_POSITION;
-    #if defined(_SGENGINE_DEBUG)
-        half4 vertexColor   : COLOR;
-    #endif
-
     float2 uv : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
     float3 positionWS : TEXCOORD2;
 
-    #if defined(_NORMALMAP)&& defined(_USE_NORMALMAP)
-        half normalWS : TEXCOORD3;
+    #if defined(_NORMALMAP)
+        half4 normalWS : TEXCOORD3;
         half4 tangentWS : TEXCOORD4;
         half4 bitangentWS : TEXCOORD5;
     #else
         half3 normalWS : TEXCOORD3;
         half3 viewDirWS: TEXCOORD4;
+        half3 bitangentWS : TEXCOORD5;
     #endif
 
     half4 fogFactorAndVertexLight   :   TEXCOORD6; // x fogFactor, yzw: vertexLight
@@ -119,49 +100,83 @@ struct Varyings
 
     float2 fogAtten :   TEXCOORD8;
     
-    #if defined(_REFLECTIONTYPE_REALTIME) || defined(_REFLECTIONTYPE_SSR)
-        float4 screenPos  :   TEXCOORD9;
+
+
+    #if defined(_FLOWLIGHTING_ON) 
+        float2 FlowLightOffsetUV  :   TEXCOORD9;
+        float2 FlowLightMaskOffsetUV  :   TEXCOORD9;
     #endif
 
-    #if defined(_STREAM_ON) 
-        float2 streamUV  :   TEXCOORD10;
-    #endif
-
+    float4 positionCS :     SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-inline void InitializeStandardLitSurfaceData(Varyings input, out SurfaceData outSurfaceData)
+struct SurfaceDescription
+{
+    half3 albedo;
+    half alpha;
+    half3   normalTS;
+    half3   emission;
+    half    metallic;
+    half3   specular;
+    half    smoothness;
+    half    occlusion;
+    half    fresnel;
+    #if defined(_SILK_ON)
+        half silkMask;
+        half silkSpecShift;
+    #endif
+};
+
+inline void InitializeStandardLitSurfaceData(Varyings input, out SurfaceDescription outSurfaceData)
 {
     half4 albedoAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
-
-    half4 specGloss = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, input.uv);
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
 
-    outSurfaceData.metallic = saturate(specGloss.g * _MetallicScale);
+    half4 specGloss = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, input.uv);
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     outSurfaceData.smoothness = saturate(1 - specGloss.r * _RoughnessScale);
-    outSurfaceData.normalTS = MyUnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.uv));
-    outSurfaceData.occlusion = specGloss.b;
+    outSurfaceData.fresnel = _FresnelScale;
+    outSurfaceData.metallic = saturate(specGloss.g * _MetallicScale);
+    
+    half4 normalColor = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.uv);    
+    outSurfaceData.normalTS = MyUnpackNormalRG(normalColor.rg);
+    outSurfaceData.occlusion = normalColor.b;
+
     #if defined(_EMISSION)
         outSurfaceData.emission = SampleEmission(input.uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap)) * _EmissionIntensity;        
     #else
         outSurfaceData.emission = half3(0, 0, 0);
     #endif
 
-    outSurfaceData.clearCoatMask = 0;
-    outSurfaceData.clearCoatSmoothness = 0;
+ #if defined(_SILK_ON)
+    outSurfaceData.silkMask = step(0.8, specGloss.a);
+    outSurfaceData.silkSpecShift = SAMPLE_TEXTURE2D(_SilkDetailMap, sampler_SilkDetailMap, input.uv * _SilkDetailUVScale);
+ #endif
+
+ #if defined(_DETAILMAP_ON)
+    half clothMask = specGloss.b;
+    half4 detailColor = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, input.uv * _DetailParam.z);
+    half3 normalTS = MyUnpackNormalScale(half4(detailColor.rgb, 1), _DetailParam.y);
+    outSurfaceData.normalTS.xy += normalTS.xy * clothMask * (1 - detailColor.a);
+    outSurfaceData.smoothness = lerp(outSurfaceData.smoothness, _DetailParam.x, detailColor.a * clothMask);
+    outSurfaceData.albedo = lerp(outSurfaceData.albedo, _DetailColor.rgb, detailColor.a * clothMask * _DetailParam.w);
+#endif
+
 }
 
-void InitializeInputData(Varyings input, half3 normalTX, out InputData inputData)
+void InitializeInputData(Varyings input, half3 normalTS, half facing, out InputData inputData)
 {
     inputData = (InputData)0;
     inputData.positionWS = input.positionWS;
 
-    #if defined(_NORMALMAP) && defined(_USE_NORMALMAP)
+    #if defined(_NORMALMAP)
         half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+        half3x3 ToW = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+        normalTS.z = facing;
+        inputData.normalWS = TransformTangentToWorld(normalTS, ToW);
     #else
         half3 viewDirWS = input.viewDirWS;
         inputData.normalWS = input.normalWS;
@@ -182,23 +197,96 @@ void InitializeInputData(Varyings input, half3 normalTX, out InputData inputData
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-
+  
 #if defined(_SCREEN_SPACE_OCCLUSION)
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 #endif
 
 }
 
-half4 GetStreamColor(half4 color, half streamMask, half4 streamTex, half streamFactor, half streamColorFactor, half streamTex)
+Varyings ClothVertex(Attributes input)
 {
-    streamTex = lerp(half4(streamTex.r, streamTex.r, streamTex.r), streamTex, streamColorFactor);
+    Varyings output = (Varyings)0;
 
-    half luminance = dot(color.rgb, half3(0.2126729f, 0.7151522f, 0.0721f));
-    half3 luminanceColor = half3(luminance,l uminance, luminance);
-    half4 saturationColor = half4( lerp(luminanceColor, color.rgb, streamFactor), 1 );
-    half4 streamColor = lerp(color, saturationColor, streamTex);
-    return lerp(color, streamColor, streamMask);
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    half3 viewDirWS =  GetCameraPositionWS() -  vertexInput.positionWS;
+    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+    
+
+    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+
+    #if defined(_NORMALMAP) && defined(_USE_NORMALMAP)
+        output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
+        output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
+        output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
+    #else
+        output.normalWS = SafeNormalize_Half3(normalInput.normalWS);
+        output.bitangentWS = normalInput.bitangentWS;
+        output.viewDirWS = viewDirWS;
+    #endif
+
+    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
+    output.fogFactorAndVertexLight = half4(0, vertexLight);
+    output.positionWS = vertexInput.positionWS;
+
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        output.shadowCoord = GetShadowCoord(vertexInput);
+    #endif
+
+    output.fogAtten = ComputeFogAtten(vertexInput.positionWS);
+    output.positionCS = vertexInput.positionCS;
+    return output;
+}
+
+half4 ClothFragment(Varyings input, half facing : VFACE) : SV_TARGET
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    SurfaceData surfaceData;
+    InitializeStandardLitSurfaceData(input, surfaceData);
+
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, facing, inputData);
+
+    #if defined(_MYENGINE_WET)
+        WetRoleBRDF(surfaceData.metallic, surfaceData.normalWS, 0, surfaceData.albedo, surfaceData.smoothness);
+    #endif
+    
+    #if defined(_DISSOLVE_ON)
+        float2 dissolveNoiseUV = input.uv * _DissolveNoiseMapTiling;
+        half dissolveThreshold = DissolveClip(inputData.normalWS, inputData.viewDirectionWS, _DissolveCutoff, TEXTURE2D_ARGS(_DissolveNoiseMap, sampler_DissolveNoiseMap), dissolveNoiseUV, _DissolveNoiseStrength );        
+    #endif
+    
+    #if defined(_SILK_ON)
+        Light mainLight = GetMainLight(inputData.shadowCoord);  
+        surfaceData.albedo += AnisoSpecular(mainLight.direction, mainLight.color, inputData.viewDirectionWS, inputData.normalWS,
+        input.bitangentWS, surfaceData.silkSpecShift, surfaceData.silkMask, _SilkSpec01Shift, _SilkSpec01Range, _SilkSpec02Shift, _SilkSpec02Range,_SilkSpec01Color,_SilkSpec02Color);
+    #endif
+
+    half4 Color = UniversalClothFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion,
+    surfaceData.emission, surfaceData.alpha, surfaceData.fresnel);
+
+    #if defined(_RINLIGHTING_ON)
+        color.rgb = RimLighting(color.rgb, inputData.normalWS, inputData.viewDirectionWS, _RimInnerColor, _RimOuterColor, _RimOuterThickness, _RimIntensity);
+    #endif
+
+    #if defined(_DISSOLVE_ON)
+        color.rgb = DissolveColoring(color.rgb, _DissolveEdgeColor, _DissolveEdgeWidth, dissolveThreshold);
+    #endif
+
+    color.rgb = ApplyFog(color.rgb, input.fogAtten);
+
+    color.rgb = clamp(color.rgb,half3(0,0,0), half3(4,4,4));
+
+    return color;
 }
 
 #endif
