@@ -90,7 +90,7 @@ uniform float TOD_CloudFogMultiplier;
 
 uniform float TOD_StarSize;
 uniform float TOD_StarBrightness;
-uniform float TOD_StarVisbility;
+uniform float TOD_StarVisibility;
 
 uniform float TOD_SunMeshContrast;
 uniform float TOD_SunMeshBrightness;
@@ -113,7 +113,7 @@ uniform float3 TOD_SunWorldPos;
 // UV rotation matrix constructor
 #define TOD_ROTATION_UV(angle) float2x2( cos(angle), -sin(angle), sin(angle), cos(angle) )
 
-#define TOD_HRD2LDR(color) (1.0 - exp2( -TOD_Brightness * color))
+#define TOD_HDR2LDR(color) (1.0 - exp2( -TOD_Brightness * color))
 
 
 #define TOD_GAMMA2LINEAR(color) (color * color)

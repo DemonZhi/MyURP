@@ -82,7 +82,7 @@ TEXTURE2D(_LightDecalMap);      SAMPLE(sampler_LightDecalMap);
 #if defined(_REFLECTIONTYPE_SSR)
 TEXTURE2D(_CameraDepthTexture);      SAMPLE(sampler_CameraDepthTexture);
 TEXTURE2D(_CameraOpaqueTexture);      SAMPLE(sampler_LinearClamp);
-#include "../Base/Includes/SGEngine_SSR.hlsl"
+#include "../Base/Includes/MyEngine_SSR.hlsl"
 half4 GetSSR(float4 positionCS, half Nov, float2 screenUV, float3 positionWS, float3 reflectDir)
 {    
     half3 ssrColor = half3(0, 0, 0);
@@ -92,10 +92,10 @@ half4 GetSSR(float4 positionCS, half Nov, float2 screenUV, float3 positionWS, fl
     float2 sampleUV = uvz.xy;
 
     ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off1).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off1).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off2).rgb * 0.2270270270;
-    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off2).rgb * 0.2270270270;
+    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off1).rgb * 0.3162162162;
+    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off1).rgb * 0.3162162162;
+    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV + off2).rgb * 0.0702702703;
+    ssrColor += SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_LinearClamp, sampleUV - off2).rgb * 0.0702702703;
     ssrColor *= _SSRIntensity;
 
     return half4(ssrColor, uvz.z);

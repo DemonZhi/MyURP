@@ -163,7 +163,7 @@ Shader "MyEngine/URP/ComplexLit"
             #pragma fragment frag
            
             #include "../Base/Includes/MyEngine_Debug.hlsl"
-            #include "../Base/Includes/Lit_Base.hlsl"
+            #include "../Base/Includes/ComplexLit_Base.hlsl"
 
             Varyings vert (Attributes input)
             {
@@ -178,7 +178,6 @@ Shader "MyEngine/URP/ComplexLit"
                     half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetMap, sampler_VertexOffsetMap, vertexOffsetUV, 0).r;
                     vertexOffsetTexColor = _VertexOffsetIndensity * ( 2 * vertexOffsetTexColor - 1 ) * vertexOffsetTexColor;
                     AnimateFlagVertex(_FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale, _FlagWaveWaveScale.xyz, vertexOffsetTexColor, input.color.b, input.texcoord, 0.5, _FlagWaveWaveScale, input.positionOS.xyz);
-
                 #endif
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
@@ -244,17 +243,24 @@ Shader "MyEngine/URP/ComplexLit"
                     topColor.rgb *= _TopColor.rgb;
                     half topOcclusion = topColor.a;
 
-                    float2 topNoiseUV = input.uv * _TopBumpMap_ST.xy + _TopBumpMap_ST.zw;
+                    float2 topNoiseUV = input.uv * _TopNoiseMap_ST.xy + _TopNoiseMap_ST.zw;
+                    half topNoise = SAMPLE_TEXTURE2D(_TopNoiseMap, sampler_TopNoiseMap, topNoiseUV).r;
+                    float normalWSY = input.normalWS.y + _TopOffset;
+                    half topMask = saturate(normalWSY);
+                    topMask = max(topMask, saturate((1 - surfaceData.occlusion) * _TopOffset));
+                    topMask = pow(topMask, 0.1 + _TopContrast * 19) * topNoise * _TopIntensity;
+                    
+                    float2 topBumpUV = input.uv * _TopBumpMap_ST.xy, + _TopBumpMap_ST.zw;
                     half4 topNormalColor = SAMPLE_TEXTURE2D(_TopBumpMap, sampler_TopBumpMap, topBumpUV);
                     float3 topNormal = MyUnpackNormalRG(topNormalColor.rg);
                     half topSmoothness = saturate(1 - topNormalColor.b);
+                    half topMetallic = topNormalColor.a;
 
                     surfaceData.albedo = lerp(surfaceData.albedo, topColor.rgb, topMask);
                     surfaceData.occlusion = lerp(surfaceData.occlusion, topOcclusion, topMask);
                     surfaceData.normalTS = lerp(surfaceData.normalTS, topNormal, topMask);
                     surfaceData.smoothness = lerp(surfaceData.smoothness, topSmoothness, topMask);
                     surfaceData.metallic = lerp(surfaceData.metallic, 0, topMask); // 地形 金属度给0
-
                 #endif
 
                 InputData inputData;
@@ -332,7 +338,7 @@ Shader "MyEngine/URP/ComplexLit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-
+            #pragma multi_compile _ _FLAGWAVE
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -341,7 +347,7 @@ Shader "MyEngine/URP/ComplexLit"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "./Includes/Lit_Base.hlsl"
+            #include "./Includes/ComplexLit_Base.hlsl"
 
             float3 _LightDirection;
             
@@ -352,6 +358,13 @@ Shader "MyEngine/URP/ComplexLit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                #if defined(_FLAGWAVE)
+                    float2 vertexOffsetUV = float2(input.texcoord.x + (_VertexOffsetMapU * _Time.y), input.texcoord.y + (_VertexOffsetMapV * _Time.y))
+                    half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetMap, sampler_VertexOffsetMap, vertexOffsetUV, 0).r;
+                    vertexOffsetTexColor = _VertexOffsetIndensity * ( 2 * vertexOffsetTexColor - 1 ) * vertexOffsetTexColor;
+                    AnimateFlagVertex(_FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale, _FlagWaveWaveScale.xyz, vertexOffsetTexColor, input.color.b, input.texcoord, 0.5, _FlagWaveWaveScale, input.positionOS.xyz);
+                #endif
 
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -402,7 +415,7 @@ Shader "MyEngine/URP/ComplexLit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-
+            #pragma multi_compile _ _FLAGWAVE
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -411,7 +424,7 @@ Shader "MyEngine/URP/ComplexLit"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "./Includes/Lit_Base.hlsl"            
+            #include "./Includes/ComplexLit_Base.hlsl"            
             
             Varyings vert (Attributes input)
             {
@@ -421,6 +434,13 @@ Shader "MyEngine/URP/ComplexLit"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 
+                #if defined(_FLAGWAVE)
+                    float2 vertexOffsetUV = float2(input.texcoord.x + (_VertexOffsetMapU * _Time.y), input.texcoord.y + (_VertexOffsetMapV * _Time.y))
+                    half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetMap, sampler_VertexOffsetMap, vertexOffsetUV, 0).r;
+                    vertexOffsetTexColor = _VertexOffsetIndensity * ( 2 * vertexOffsetTexColor - 1 ) * vertexOffsetTexColor;
+                    AnimateFlagVertex(_FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale, _FlagWaveWaveScale.xyz, vertexOffsetTexColor, input.color.b, input.texcoord, 0.5, _FlagWaveWaveScale, input.positionOS.xyz);
+                #endif
+
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 return output;
             }
@@ -457,7 +477,7 @@ Shader "MyEngine/URP/ComplexLit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local _NORMALMAP
-
+            #pragma multi_compile _ _FLAGWAVE
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -466,7 +486,7 @@ Shader "MyEngine/URP/ComplexLit"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "./Includes/Lit_Base.hlsl"
+            #include "./Includes/ComplexLit_Base.hlsl"
             
             Varyings vert(Attributes input)
             {
@@ -474,6 +494,13 @@ Shader "MyEngine/URP/ComplexLit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                #if defined(_FLAGWAVE)
+                    float2 vertexOffsetUV = float2(input.texcoord.x + (_VertexOffsetMapU * _Time.y), input.texcoord.y + (_VertexOffsetMapV * _Time.y))
+                    half vertexOffsetTexColor = SAMPLE_TEXTURE2D_LOD(_VertexOffsetMap, sampler_VertexOffsetMap, vertexOffsetUV, 0).r;
+                    vertexOffsetTexColor = _VertexOffsetIndensity * ( 2 * vertexOffsetTexColor - 1 ) * vertexOffsetTexColor;
+                    AnimateFlagVertex(_FlagWaveLengthOffset, _FlagWaveSpeed, _FlagWaveFrequencyScale, _FlagWaveWaveScale.xyz, vertexOffsetTexColor, input.color.b, input.texcoord, 0.5, _FlagWaveWaveScale, input.positionOS.xyz);
+                #endif
 
                 output.uv         = TRANSFORM_TEX(input.texcoord, _BaseMap);
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
@@ -509,12 +536,12 @@ Shader "MyEngine/URP/ComplexLit"
 
             #pragma vertex vert
             #pragma fragment frag
-
+            #pragma multi_compile _ _TOPCOVER
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
-            #include "./Includes/Lit_Base.hlsl"
+            #include "./Includes/ComplexLit_Base.hlsl"
 
             Varyings vert (Attributes input)
             {
@@ -529,6 +556,32 @@ Shader "MyEngine/URP/ComplexLit"
             {
                 SurfaceData surfaceData;
                 InitializeStandardLitSurfaceData(input, surfaceData);
+
+                #if defined(_TOPCOVER)
+                    float2 topUV = input.uv * _TopMap_ST.xy * length(UNITY_MATRIX_M._m00_m10_m20) + _TopMap_ST.zw;
+                    half4 topColor = SAMPLE_TEXTURE2D(_TopMap, sampler_TopMap, topUV);
+                    topColor.rgb *= _TopColor.rgb;
+                    half topOcclusion = topColor.a;
+
+                    float2 topNoiseUV = input.uv * _TopNoiseMap_ST.xy + _TopNoiseMap_ST.zw;
+                    half topNoise = SAMPLE_TEXTURE2D(_TopNoiseMap, sampler_TopNoiseMap, topNoiseUV).r;
+                    float normalWSY = input.normalWS.y + _TopOffset;
+                    half topMask = saturate(normalWSY);
+                    topMask = max(topMask, saturate((1 - surfaceData.occlusion) * _TopOffset));
+                    topMask = pow(topMask, 0.1 + _TopContrast * 19) * topNoise * _TopIntensity;
+
+                    float2 topBumpUV = input.uv * _TopBumpMap_ST.xy, + _TopBumpMap_ST.zw;
+                    half4 topNormalColor = SAMPLE_TEXTURE2D(_TopBumpMap, sampler_TopBumpMap, topBumpUV);
+                    float3 topNormal = MyUnpackNormalRG(topNormalColor.rg);
+                    half topSmoothness = saturate(1 - topNormalColor.b);
+                    half topMetallic = topNormalColor.a;
+
+                    surfaceData.albedo = lerp(surfaceData.albedo, topColor.rgb, topMask);
+                    surfaceData.occlusion = lerp(surfaceData.occlusion, topOcclusion, topMask);
+                    surfaceData.normalTS = lerp(surfaceData.normalTS, topNormal, topMask);
+                    surfaceData.smoothness = lerp(surfaceData.smoothness, topSmoothness, topMask);
+                    surfaceData.metallic = lerp(surfaceData.metallic, 0, topMask); // 地形 金属度给0
+                #endif
 
                 #if defined(_EMISSION)
                     InputData inputData;
