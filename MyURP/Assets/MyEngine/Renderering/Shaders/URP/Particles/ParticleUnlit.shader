@@ -107,5 +107,5 @@ Shader "MyEngine/URP/Particles/ParticleUnlit"
     }
     
     Fallback "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "ParticleShaderGUI"
+    //CustomEditor "ParticleShaderGUI"
 }
